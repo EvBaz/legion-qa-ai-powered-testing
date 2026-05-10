@@ -1,0 +1,25 @@
+{
+  "name": "legion-qa-ai-powered-testing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvBaz/legion-qa-ai-powered-testing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/EvBaz/legion-qa-ai-powered-testing/issues"
+  },
+  "homepage": "https://github.com/EvBaz/legion-qa-ai-powered-testing#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.2"
+  }
+}
