@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig({
   testDir: './tests',
@@ -8,8 +11,8 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'https://playwright.dev',
-    trace: 'on-first-retry',
+    baseURL: process.env.DIDAXIS_URL,
+    trace: 'on', //'on-first-retry',
   },
   projects: [
     {

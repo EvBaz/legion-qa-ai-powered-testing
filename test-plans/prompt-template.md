@@ -1,4 +1,4 @@
-# Prompt Template â€” Test Plan for Playwright MVC
+# Prompt Template - Test Plan for Playwright MVC
 
 ## Role
 
