@@ -1,0 +1,16 @@
+- generic [ref=e6]:
+  - img "Didaxis Studio"
+  - paragraph [ref=e7]: Sign in to your account
+  - generic [ref=e8]:
+    - generic [ref=e9]: Email *
+    - textbox "Email" [ref=e11]:
+      - /placeholder: you@college.edu
+  - generic [ref=e12]:
+    - generic [ref=e13]: Password *
+    - generic [ref=e14]:
+      - textbox "Password" [ref=e16]:
+        - /placeholder: Your password
+      - button [ref=e18] [cursor=pointer]:
+        - img [ref=e20]
+  - button "Sign In" [ref=e22] [cursor=pointer]:
+    - generic [ref=e24]: Sign In
