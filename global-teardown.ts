@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
-import { deleteProgram, getDidaxisApiToken } from './support/delete-program';
+import { deleteProgram, getDidaxisApiToken } from './lib/delete-program';
 import {
   CREATED_PROGRAMS_DIR,
   getAllCreatedProgramIds,
-} from './tests/utils/created-programs';
+} from './lib/created-programs';
 
 dotenv.config();
 

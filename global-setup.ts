@@ -1,4 +1,4 @@
-import { resetCreatedProgramsStore } from './tests/utils/created-programs';
+import { resetCreatedProgramsStore } from './lib/created-programs';
 
 export default function globalSetup(): void {
   resetCreatedProgramsStore();

@@ -9,11 +9,12 @@
     "types": ["node"]
   },
   "include": [
+    "fixtures/**/*.ts",
     "tests/**/*.ts",
     "playwright.config.ts",
     "global-setup.ts",
     "global-teardown.ts",
-    "support/**/*.ts",
-    ".agents/didaxis-program-deleter/scripts/**/*.ts"
+    "lib/**/*.ts",
+    ".agents/skills/didaxis-program-deleter/scripts/**/*.ts"
   ]
 }

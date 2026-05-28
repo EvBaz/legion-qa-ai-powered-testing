@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../../fixtures/cleanup.fixture';
 
 const APP_URL = 'https://demo.playwright.dev/todomvc/#/';
 

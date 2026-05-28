@@ -7,7 +7,7 @@
     "test": "playwright test",
     "playwright:install": "node scripts/ensure-playwright-browsers.js",
     "postinstall": "node scripts/ensure-playwright-browsers.js",
-    "delete-programs": "tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts"
+    "delete-programs": "tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts"
   },
   "repository": {
     "type": "git",

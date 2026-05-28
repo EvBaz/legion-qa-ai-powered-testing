@@ -5,7 +5,7 @@ import {
   fetchAllPrograms,
   getDidaxisApiToken,
   type ProgramSummary,
-} from '../../../support/delete-program';
+} from '../../../../lib/delete-program';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
@@ -45,9 +45,9 @@ function parseArgs(argv: string[]): CliOptions {
 
 function printUsage(): void {
   console.log(`Usage (run from project root):
-  npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts
-  npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts --all --dry-run
-  npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts --id <PROGRAM_UUID> [--id <UUID> ...]`);
+  npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts
+  npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts --all --dry-run
+  npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts --id <PROGRAM_UUID> [--id <UUID> ...]`);
 }
 
 async function main(): Promise<void> {

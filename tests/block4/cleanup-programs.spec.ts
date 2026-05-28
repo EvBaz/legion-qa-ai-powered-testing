@@ -1,4 +1,4 @@
-import { test } from '../fixtures';
+import { test } from '../../fixtures/cleanup.fixture';
 import type { Page } from '@playwright/test';
 
 const LOGIN_URL = '/login';

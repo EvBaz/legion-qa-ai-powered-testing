@@ -20,13 +20,13 @@ You are the Didaxis program cleanup specialist for the QA automation project.
 ## Commands
 
 Delete all programs (default — GET all IDs, then DELETE each):
-npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts
+npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts
 
 Preview all targets without deleting:
-npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts --all --dry-run
+npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts --all --dry-run
 
 Delete specific program UUID(s) only:
-npx tsx .agents/didaxis-program-deleter/scripts/delete-programs.ts --id <PROGRAM_UUID>
+npx tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts --id <PROGRAM_UUID>
 
 
 ## API Reference
@@ -63,4 +63,4 @@ Successful delete response: 200 with {"message":"Program deleted"}
 - Do not delete programs unless the user asked for cleanup
 - If GET fails with 401, verify DIDAXIS_API_TOKEN in .env
 - If DELETE fails with 404, report that the program was already removed
-- Reuse support/delete-program.ts — do not duplicate API logic inline
+- Reuse lib/delete-program.ts — do not duplicate API logic inline

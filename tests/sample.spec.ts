@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect } from '../fixtures/cleanup.fixture';
 
 test('homepage has Playwright in title', async ({ page }) => {
   await page.goto('/');
