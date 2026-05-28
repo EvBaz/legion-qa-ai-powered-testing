@@ -1,8 +1,11 @@
 node_modules/
 .env
 .playwright-mcp/
+.playwright-browsers/
+.playwright-created-programs/
 test-results/
 playwright-report/
 blob-report/
 templates/
 bugs/
+.scripts/

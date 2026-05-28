@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '../fixtures';
+import type { Page } from '@playwright/test';
 
 const LOGIN_URL = '/login';
 const PROGRAMS_URL = '/programs';
