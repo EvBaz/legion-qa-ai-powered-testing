@@ -1,16 +1,7 @@
 import { test, expect } from '../../fixtures/cleanup.fixture';
 import type { Page } from '@playwright/test';
 
-const LOGIN_URL = '/login';
 const PROGRAMS_URL = '/programs';
-
-async function login(page: Page) {
-  await page.goto(LOGIN_URL);
-  await page.getByLabel('Email').fill(process.env.DIDAXIS_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.DIDAXIS_PASSWORD!);
-  await page.getByRole('button', { name: 'Sign In' }).click();
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
-}
 
 function getEditDialog(page: Page) {
   return page.getByRole('dialog', { name: 'Edit Program' });
@@ -52,10 +43,6 @@ async function openEditModal(page: Page, programName: string) {
 // --- 1. Positive Flows ---
 
 test.describe('Positive Flows', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('TC-001: Edit form displays current program name and description', async ({ page }) => {
     const programName = uniqueName('YB Web Development 2026');
     const description = 'Full-stack web development program';
@@ -168,10 +155,6 @@ test.describe('Positive Flows', () => {
 // --- 2. Negative Flows ---
 
 test.describe('Negative Flows', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('TC-007: Editing a program name to empty is prevented', async ({ page }) => {
     const programName = uniqueName('YB Web Development 2026');
 
@@ -224,10 +207,6 @@ test.describe('Negative Flows', () => {
 // --- 3. Edge Cases ---
 
 test.describe('Edge Cases', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('TC-011: Program name can be updated to the maximum character limit (255)', async ({ page }) => {
     const programName = uniqueName('YB Max Length Edit');
     const longName = ('YB ' + 'A'.repeat(252)).slice(0, 255);

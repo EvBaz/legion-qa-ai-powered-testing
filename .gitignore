@@ -1,5 +1,6 @@
 node_modules/
 .env
+playwright/.auth/
 .playwright-mcp/
 .playwright-browsers/
 .playwright-created-programs/

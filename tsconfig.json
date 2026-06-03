@@ -10,6 +10,7 @@
   },
   "include": [
     "fixtures/**/*.ts",
+    "pages/**/*.ts",
     "tests/**/*.ts",
     "playwright.config.ts",
     "global-setup.ts",

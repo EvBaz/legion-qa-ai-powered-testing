@@ -1,0 +1,11 @@
+export { BasePage } from './base.page';
+export { LoginPage } from './login.page';
+export { DashboardPage } from './dashboard.page';
+export { ProgramsPage } from './programs.page';
+export { NewProgramModal } from './new-program.modal';
+export { EditProgramModal } from './edit-program.modal';
+export { CalendarPage } from './calendar.page';
+export { ValidationPage } from './validation.page';
+export { SchedulerPage } from './scheduler.page';
+export { ExportPage } from './export.page';
+export { SettingsPage } from './settings.page';
