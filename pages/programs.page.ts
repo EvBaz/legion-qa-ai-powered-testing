@@ -42,7 +42,9 @@ export class ProgramsPage extends BasePage {
   }
 
   programRow(name: string): Locator {
-    return this.page.getByRole('row', { name: new RegExp(this.escapeRegex(name)) });
+    return this.page.getByRole('row').filter({
+      has: this.page.getByText(name, { exact: true }),
+    });
   }
 
   editButton(programName: string): Locator {

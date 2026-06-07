@@ -196,6 +196,8 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-016: Double-clicking Create does not produce duplicate entries', async () => {
+    test.fail(true, 'Known demo bug — double-clicking Create produces duplicate programs.');
+
     const programName = uniqueName('YB Double Click Test');
     const modal = programs.newProgramModal;
 

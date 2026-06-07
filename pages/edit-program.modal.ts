@@ -39,6 +39,10 @@ export class EditProgramModal {
     await this.saveButton.click();
   }
 
+  async doubleClickSave() {
+    await this.saveButton.dblclick();
+  }
+
   async cancel() {
     await this.cancelButton.click();
   }
