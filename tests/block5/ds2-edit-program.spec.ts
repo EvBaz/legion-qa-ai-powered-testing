@@ -5,9 +5,6 @@ function uniqueName(base: string): string {
   return `${base} ${Date.now()}`;
 }
 
-const KNOWN_DUP_RENAME =
-  'Known demo bug — duplicate program names are allowed on rename.';
-
 // --- 1. Positive Flows ---
 
 test.describe('Positive Flows', () => {
@@ -210,8 +207,6 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-013: Renaming a program to an existing name is rejected', async () => {
-    test.fail(true, KNOWN_DUP_RENAME);
-
     const existingName = uniqueName('YB Web Development 2026');
     const otherName = uniqueName('YB Data Science 101');
     const editModal = programs.editProgramModal;

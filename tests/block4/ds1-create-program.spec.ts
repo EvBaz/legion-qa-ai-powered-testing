@@ -21,7 +21,7 @@ test.describe('Positive Flows', () => {
     await expect(modal.dialog).toBeVisible();
     await expect(modal.programNameInput).toBeVisible();
     await expect(modal.descriptionInput).toBeVisible();
-    await expect(modal.createButton).not.toBeVisible();
+    await expect(modal.createButton).toBeVisible();
   });
 
   test('TC-002: Program is created and appears in the program list', async () => {
@@ -33,7 +33,9 @@ test.describe('Positive Flows', () => {
     await modal.create(programName, description);
 
     await expect(modal.dialog).toBeHidden({ timeout: 10000 });
-    await expect(programs.programRow(programName)).toBeVisible({ timeout: 10000 });
+    const row = programs.programRow(programName);
+    await expect(row).toBeVisible({ timeout: 10000 });
+    await expect(row).toContainText(description);
   });
 
   test('TC-003: Create button is disabled by default on empty form', async () => {
@@ -193,11 +195,13 @@ test.describe('Edge Cases', () => {
 
     await expect(modal.dialog).toBeHidden({ timeout: 10000 });
     await expect(programs.programRow(programName)).toBeVisible({ timeout: 10000 });
+    await expect(programs.programRow(programName)).toContainText(longDescription);
+
+    await programs.openEditModal(programName);
+    await expect(programs.editProgramModal.descriptionInput).toHaveValue(longDescription);
   });
 
   test('TC-016: Double-clicking Create does not produce duplicate entries', async () => {
-    test.fail(true, 'Known demo bug — double-clicking Create produces duplicate programs.');
-
     const programName = uniqueName('YB Double Click Test');
     const modal = programs.newProgramModal;
 

@@ -5,11 +5,6 @@ function uniqueName(base: string): string {
   return `${base} ${Date.now()}`;
 }
 
-const KNOWN_DUP_CREATE =
-  'Known demo bug — duplicate program names are allowed on create.';
-const KNOWN_DUP_RENAME =
-  'Known demo bug — duplicate program names are allowed on rename.';
-
 // --- 1. Positive Flows ---
 
 test.describe('Positive Flows', () => {
@@ -93,8 +88,6 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-007: Creating a program with an exact duplicate name shows an error', async () => {
-    test.fail(true, KNOWN_DUP_CREATE);
-
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -108,8 +101,6 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-008: Case-insensitive duplicate detection prevents lowercase variant', async () => {
-    test.fail(true, KNOWN_DUP_CREATE);
-
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -122,8 +113,6 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-009: Duplicate detection catches names that match after trimming whitespace', async () => {
-    test.fail(true, KNOWN_DUP_CREATE);
-
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -213,8 +202,6 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-016: Duplicate validation applies when renaming an existing program', async () => {
-    test.fail(true, KNOWN_DUP_RENAME);
-
     const programA = uniqueName('Program A');
     const programB = uniqueName('Program B');
     const editModal = programs.editProgramModal;

@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import { type Dialog, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { EditProgramModal } from './edit-program.modal';
 import { NewProgramModal } from './new-program.modal';
@@ -10,6 +10,8 @@ export class ProgramsPage extends BasePage {
   readonly newProgramButton: Locator;
   readonly programsTable: Locator;
   readonly selectProgramHint: Locator;
+  readonly emptyStateMessage: Locator;
+  readonly createProgramButton: Locator;
   readonly newProgramModal: NewProgramModal;
   readonly editProgramModal: EditProgramModal;
 
@@ -20,6 +22,8 @@ export class ProgramsPage extends BasePage {
     this.newProgramButton = page.getByRole('button', { name: '+ New Program' });
     this.programsTable = page.getByRole('table');
     this.selectProgramHint = page.getByText('Select a program to manage semesters');
+    this.emptyStateMessage = page.getByText(/no programs/i);
+    this.createProgramButton = page.getByRole('button', { name: 'Create Program' });
     this.newProgramModal = new NewProgramModal(page);
     this.editProgramModal = new EditProgramModal(page);
   }
@@ -71,15 +75,30 @@ export class ProgramsPage extends BasePage {
     await this.editButton(programName).click();
   }
 
-  async deleteProgram(programName: string, { confirm = true }: { confirm?: boolean } = {}) {
-    this.page.once('dialog', (dialog) => {
-      if (confirm) {
-        void dialog.accept();
-      } else {
-        void dialog.dismiss();
-      }
+  programDataRows(): Locator {
+    return this.programsTable.getByRole('row').filter({
+      hasNot: this.page.getByRole('columnheader'),
     });
-    await this.deleteButton(programName).click();
+  }
+
+  async openDeleteDialog(programName: string): Promise<Dialog> {
+    const dialogPromise = this.page.waitForEvent('dialog');
+    void this.deleteButton(programName).click();
+    return dialogPromise;
+  }
+
+  async deleteProgram(programName: string, { confirm = true }: { confirm?: boolean } = {}) {
+    const dialog = await this.openDeleteDialog(programName);
+    if (confirm) {
+      await dialog.accept();
+    } else {
+      await dialog.dismiss();
+    }
+  }
+
+  async dismissDeleteDialogWithEscape(programName: string) {
+    const dialog = await this.openDeleteDialog(programName);
+    await dialog.dismiss();
   }
 
   async createProgram(name: string, description?: string) {
