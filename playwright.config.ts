@@ -16,7 +16,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: process.env.DIDAXIS_URL,
-    trace: 'on', //'on-first-retry',
+    trace: 'on-first-retry',
   },
   projects: [
     {
