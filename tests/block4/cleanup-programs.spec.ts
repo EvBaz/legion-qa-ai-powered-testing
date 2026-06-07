@@ -1,54 +1,55 @@
 import { test } from '../../fixtures/cleanup.fixture';
-import type { Page } from '@playwright/test';
+import {
+  deleteProgram,
+  fetchAllPrograms,
+  getDidaxisApiToken,
+} from '../../lib/delete-program';
 
-const LOGIN_URL = '/login';
-const PROGRAMS_URL = '/programs';
-const TEST_PREFIXES = [
-  'YB ',
-];
+const TEST_PREFIXES = ['YB '];
 
-async function login(page: Page) {
-  await page.goto(LOGIN_URL);
-  await page.getByLabel('Email').fill(process.env.DIDAXIS_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.DIDAXIS_PASSWORD!);
-  await page.getByRole('button', { name: 'Sign In' }).click();
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
+function matchesTestPrefix(name: string | undefined): boolean {
+  if (!name) {
+    return false;
+  }
+  return TEST_PREFIXES.some((prefix) => name.includes(prefix));
 }
 
-test('Cleanup: delete all test programs matching prefixes', async ({ page }) => {
-  test.setTimeout(600_000);
-
-  await login(page);
-  await page.goto(PROGRAMS_URL);
-  await page.getByRole('table').waitFor({ state: 'visible', timeout: 30000 });
-
-  let totalDeleted = 0;
-
-  for (const prefix of TEST_PREFIXES) {
-    let prefixDeleted = 0;
-
-    while (true) {
-      await page.getByRole('table').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
-
-      const matchingRows = page.getByRole('row').filter({ hasText: prefix });
-      const count = await matchingRows.count();
-      if (count === 0) break;
-
-      const targetText = await matchingRows.first().textContent();
-      page.once('dialog', (dialog) => dialog.accept());
-      await matchingRows.first().getByRole('button', { name: '🗑' }).click();
-
-      if (targetText) {
-        await page.getByText(targetText).waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
-      }
-      prefixDeleted++;
-    }
-
-    if (prefixDeleted > 0) {
-      console.log(`"${prefix}": deleted ${prefixDeleted}`);
-    }
-    totalDeleted += prefixDeleted;
+test('Cleanup: delete all test programs matching prefixes', async () => {
+  const token = getDidaxisApiToken();
+  if (!token) {
+    test.skip(true, 'DIDAXIS_API_TOKEN is not set');
+    return;
   }
 
-  console.log(`Cleanup complete: deleted ${totalDeleted} test program(s).`);
+  const programs = await fetchAllPrograms(token);
+  const toDelete = programs.filter((program) => matchesTestPrefix(program.name));
+
+  if (toDelete.length === 0) {
+    console.log('Cleanup complete: deleted 0 test program(s).');
+    return;
+  }
+
+  let deleted = 0;
+  let failed = 0;
+
+  for (const program of toDelete) {
+    const result = await deleteProgram(program.id, token);
+    if (result.ok) {
+      deleted++;
+    } else {
+      failed++;
+      console.warn(
+        `Failed to delete ${program.id}${program.name ? ` (${program.name})` : ''}: ${result.status} — ${result.message}`,
+      );
+    }
+  }
+
+  for (const prefix of TEST_PREFIXES) {
+    const prefixCount = toDelete.filter((program) => program.name?.includes(prefix)).length;
+    if (prefixCount > 0) {
+      console.log(`"${prefix}": deleted ${prefixCount}`);
+    }
+  }
+
+  console.log(`Cleanup complete: ${deleted} deleted, ${failed} failed.`);
 });
