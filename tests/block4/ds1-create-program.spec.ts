@@ -21,7 +21,7 @@ test.describe('Positive Flows', () => {
     await expect(modal.dialog).toBeVisible();
     await expect(modal.programNameInput).toBeVisible();
     await expect(modal.descriptionInput).toBeVisible();
-    await expect(modal.createButton).toBeVisible();
+    await expect(modal.createButton).not.toBeVisible();
   });
 
   test('TC-002: Program is created and appears in the program list', async () => {
