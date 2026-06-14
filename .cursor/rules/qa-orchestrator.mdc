@@ -1,0 +1,8 @@
+---
+description: Entry point for end-to-end QA — delegates to the qa-orchestrator subagent instead of invoking test-writer, triage, or bug-reporter manually.
+alwaysApply: false
+---
+
+# QA Orchestrator
+
+For any end-to-end QA task (one ticket, a red CI run, or a batch from Jira), **invoke the `qa-orchestrator` subagent** — do not call `test-writer`, `triage`, or `bug-reporter` directly. Full workflow, routing, loop guards, and batch mode live in `.cursor/agents/qa-orchestrator.md`.

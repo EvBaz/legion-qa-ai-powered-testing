@@ -1,5 +1,6 @@
 ---
 name: jira-ticket-analyzer
+model: strong
 description: >
     Turns a Jira ticket's acceptance criteria into structured, reviewable Gherkin test scenarios. Use this skill whenever the user references a Jira ticket (DS-1, DS-2, etc.) and asks for test cases, a test plan, scenarios, or wants to plan testing for a ticket - even if they don't say the word "Gherkin".
 ---
@@ -16,6 +17,7 @@ code gets written.
    title, description, and every acceptance criterion.
 
 2. Generate test scenarios as a Gherkin `.feature` file:
+   - Save output to `features/<ticket-key>.feature.md`
    - One `Feature`, named after the ticket
    - Cover every acceptance criterion with at least one `Scenario`
    - Add negative scenarios - what should NOT happen

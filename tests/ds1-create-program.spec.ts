@@ -1,5 +1,5 @@
-import { test, expect } from '../../fixtures/cleanup.fixture';
-import { ProgramsPage } from '../../pages';
+import { test, expect } from '../fixtures/cleanup.fixture';
+import { ProgramsPage } from '../pages';
 
 function uniqueName(base: string): string {
   return `${base} ${Date.now()}`;
@@ -25,7 +25,7 @@ test.describe('Positive Flows', () => {
   });
 
   test('TC-002: Program is created and appears in the program list', async () => {
-    const programName = uniqueName('YB Web Development');
+    const programName = uniqueName('Web Development 2026');
     const description = 'Full-stack web development program';
     const modal = programs.newProgramModal;
 
@@ -49,12 +49,12 @@ test.describe('Positive Flows', () => {
 
     await programs.gotoAndOpenNewProgramModal();
     await expect(modal.createButton).toBeDisabled();
-    await modal.fillProgramName(uniqueName('YB Data Science Bootcamp'));
+    await modal.fillProgramName(uniqueName('Data Science Bootcamp'));
     await expect(modal.createButton).toBeEnabled();
   });
 
   test('TC-005: Program is created successfully with only Program Name (no Description)', async () => {
-    const programName = uniqueName('YB Cybersecurity Fundamentals');
+    const programName = uniqueName('Cybersecurity Fundamentals');
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -66,7 +66,7 @@ test.describe('Positive Flows', () => {
   });
 
   test('TC-006: Created program survives a full page reload', async () => {
-    const programName = uniqueName('YB Persist Test');
+    const programName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -114,7 +114,7 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-010: Dismissing the creation form does not create a program', async () => {
-    const programName = uniqueName('YB Abandoned Program');
+    const programName = uniqueName('Abandoned Program');
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -136,7 +136,7 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-011: Program creation accepts a name at the maximum allowed character limit (255)', async () => {
-    const longName = 'YB ' + 'A'.repeat(242) + ` ${Date.now()}`;
+    const longName = 'A'.repeat(242) + ` ${Date.now()}`;
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -144,10 +144,11 @@ test.describe('Edge Cases', () => {
     await modal.submitCreate();
 
     await expect(modal.dialog).toBeHidden({ timeout: 10000 });
+    await expect(programs.programRow(longName)).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-012: Program name beyond max length is rejected or truncated', async () => {
-    const overLimitName = 'YB ' + 'B'.repeat(297);
+    const overLimitName = 'B'.repeat(300);
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -163,7 +164,7 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-013: Leading/trailing whitespace in Program Name is trimmed before saving', async () => {
-    const coreName = uniqueName('YB Whitespace Test');
+    const coreName = uniqueName('Web Development 2026');
     const paddedName = `  ${coreName}  `;
     const modal = programs.newProgramModal;
 
@@ -176,17 +177,19 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-014: Single-character Program Name is accepted', async () => {
+    const programName = String.fromCharCode(65 + (Date.now() % 26));
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
-    await modal.fillProgramName('YB Z');
+    await modal.fillProgramName(programName);
     await modal.submitCreate();
 
     await expect(modal.dialog).toBeHidden({ timeout: 10000 });
+    await expect(programs.programRow(programName)).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-015: Long description text is accepted and stored completely', async () => {
-    const programName = uniqueName('YB Long Description Test');
+    const programName = uniqueName('Long Description Test');
     const longDescription = 'D'.repeat(2000);
     const modal = programs.newProgramModal;
 
@@ -202,7 +205,7 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-016: Double-clicking Create does not produce duplicate entries', async () => {
-    const programName = uniqueName('YB Double Click Test');
+    const programName = uniqueName('Double Click Test');
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -214,7 +217,7 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-017: Unicode and emoji characters in Program Name are handled correctly', async () => {
-    const programName = `YB プログラム 🎓 ${Date.now()}`;
+    const programName = `プログラム 🎓 ${Date.now()}`;
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();

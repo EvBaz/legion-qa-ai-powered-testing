@@ -1,8 +1,12 @@
-import { test, expect } from '../../fixtures/cleanup.fixture';
-import { ProgramsPage } from '../../pages';
+import { test, expect } from '../fixtures/cleanup.fixture';
+import { ProgramsPage } from '../pages';
 
 function uniqueName(base: string): string {
   return `${base} ${Date.now()}`;
+}
+
+function uniqueSingleCharName(): string {
+  return String.fromCharCode(65 + (Date.now() % 26));
 }
 
 // --- 1. Positive Flows ---
@@ -134,7 +138,7 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-011: HTML and script tags in program name are stored as plain text', async () => {
-    const programName = `<script>alert('XSS')</script> ${Date.now()}`;
+    const programName = uniqueName(`<script>alert('XSS')</script>`);
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -145,7 +149,7 @@ test.describe('Negative Flows', () => {
   });
 
   test('TC-012: SQL injection strings in program name are handled safely', async () => {
-    const programName = `'; DROP TABLE programs; -- ${Date.now()}`;
+    const programName = uniqueName(`'; DROP TABLE programs; --`);
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -229,7 +233,7 @@ test.describe('Edge Cases', () => {
   });
 
   test('TC-018: A single-character program name passes validation', async () => {
-    const programName = 'Z';
+    const programName = uniqueSingleCharName();
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();

@@ -1,9 +1,9 @@
-import { test } from '../../fixtures/cleanup.fixture';
+import { test } from '../fixtures/cleanup.fixture';
 import {
   deleteProgram,
   fetchAllPrograms,
   getDidaxisApiToken,
-} from '../../lib/delete-program';
+} from '../lib/delete-program';
 
 const TEST_PREFIXES = ['YB '];
 
