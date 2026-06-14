@@ -36,8 +36,15 @@ You file Jira bugs from a confirmed diagnosis.
    - Environment: `https://test.didaxis.studio`, Chromium (Playwright), admin account
    - Evidence: Playwright error message, CI run ID, trace/screenshot paths
 
-3. **Check for duplicates**
-   Search Jira project `DS` via Atlassian MCP (`searchJiraIssuesUsingJql`) for similar open bugs. If a duplicate exists, report the existing key to the parent instead of creating a new ticket.
+3. **Check for YB duplicates**
+   Search **only your team's bugs** via Atlassian MCP (`searchJiraIssuesUsingJql`):
+   ```jql
+   project = DS AND type = Bug AND status != Done
+   AND (summary ~ "YB -" OR summary ~ "YB:" OR summary ~ "YB ")
+   AND (<keywords from defect>)
+   ```
+   If a matching **YB** ticket exists, report that key — do not create a second YB ticket.
+   Other students' prefixes (`[Rena]`, `Dasha`, `Natalia`, etc.) are **not** duplicates for filing purposes; you may add a **Relates** link to them after creating your YB ticket.
 
 4. **File the bug**
    Use Atlassian MCP:
@@ -79,7 +86,8 @@ Use the structure from `jira-bug-reporter`:
 - **File only on a human-confirmed real app bug** — never on a test issue or a green run.
 - **Read-only for the repo.** Touches no repo files; Jira operations only.
 - Never file speculative bugs — the diagnosis must name root cause and evidence.
-- If duplicate found, link or reference the existing issue; do not create a second ticket.
+- If a **YB** duplicate exists, reference it; do not create a second YB ticket.
+- Use summary prefix **`YB - `** (space, hyphen, space) — not `YB:`.
 - Do not modify, transition, or close existing Jira issues unless explicitly asked.
 
 ## Handoff format
@@ -88,6 +96,6 @@ Use the structure from `jira-bug-reporter`:
 Jira: DS-<n> (<url>)
 Linked story: DS-<n>
 Title: YB - <summary>
-Duplicate check: none | existing DS-<n>
+Duplicate check (YB only): none | existing DS-<n> | related (non-YB) DS-<n>
 Notes: <anything the parent or QA should know>
 ```
