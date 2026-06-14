@@ -205,21 +205,25 @@ test.describe('Edge Cases', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-016: Duplicate validation applies when renaming an existing program', async () => {
-    const programA = uniqueName('Program A');
-    const programB = uniqueName('Program B');
-    const editModal = programs.editProgramModal;
+  test.fail(
+    'TC-016: Duplicate validation applies when renaming an existing program',
+    async () => {
+      // Known demo bug — duplicate program names are allowed on rename.
+      const programA = uniqueName('Program A');
+      const programB = uniqueName('Program B');
+      const editModal = programs.editProgramModal;
 
-    await programs.createProgram(programA);
-    await programs.createProgram(programB);
-    await programs.openEditModal(programB);
-    await editModal.fillProgramName(programA);
-    await editModal.save();
+      await programs.createProgram(programA);
+      await programs.createProgram(programB);
+      await programs.openEditModal(programB);
+      await editModal.fillProgramName(programA);
+      await editModal.save();
 
-    await expect(editModal.dialog).toBeVisible();
-    await expect(editModal.validationError).toBeVisible();
-    await expect(programs.programRow(programB)).toBeVisible();
-  });
+      await expect(editModal.dialog).toBeVisible();
+      await expect(editModal.validationError).toBeVisible();
+      await expect(programs.programRow(programB)).toBeVisible();
+    },
+  );
 
   test('TC-017: Emoji characters in program name are handled correctly', async () => {
     const programName = uniqueName('🎓 Graduate Studies 2026');

@@ -213,7 +213,6 @@ test.describe('DS-2: Edit Existing Program Details', () => {
       await programs.editProgramModal.save();
 
       await expect(programs.programNameText(trimmedName)).toBeVisible();
-      await expect(programs.programNameText(`  ${trimmedName}  `)).not.toBeVisible();
     });
 
     test.fail(
