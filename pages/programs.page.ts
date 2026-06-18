@@ -60,7 +60,9 @@ export class ProgramsPage extends BasePage {
   }
 
   detailPanel(programName: string): Locator {
-    return this.page.locator('main').filter({ has: this.page.getByRole('heading', { name: programName, level: 4 }) });
+    return this.page.getByRole('main').filter({
+      has: this.page.getByRole('heading', { name: programName, level: 4 }),
+    });
   }
 
   async openNewProgramModal() {

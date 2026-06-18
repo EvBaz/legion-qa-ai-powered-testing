@@ -25,7 +25,7 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 **You do yourself:** read Jira/CI context, apply `jira-ticket-analyzer` to produce test plans, run `npx playwright test`, route to specialists, track loop limits, escalate when stuck, produce batch summaries.
 
 **Delegate only:**
-- `test-writer` — turn a plan into a spec or propose a test fix
+- `test-writer` — turn a plan into a spec or propose a test fix; must follow `@playwright-convention` and project skills
 - `triage` — diagnose a red run (real app bug vs test issue)
 - `bug-reporter` — file a human-confirmed real app bug in Jira
 
@@ -43,6 +43,7 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 
 3. **Write tests**
    - Delegate to `test-writer` with the plan path or ticket key
+   - Include `@playwright-convention` in scope (locators, waiting, POM, auth, data, API, mocking, a11y, assertions, anti-flake)
    - Wait for handoff: spec path and run command
 
 4. **Run the spec**
@@ -53,7 +54,7 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 5. **Triage failures**
    - Delegate to `triage` with the run output or CI run ID
    - **Real app bug** → confirm with human → delegate to `bug-reporter`
-   - **Test issue** → delegate to `test-writer` with the diagnosis; human approves the fix → re-run (step 4)
+   - **Test issue** → delegate to `test-writer` with the diagnosis and `@playwright-convention` in scope; human approves the fix → re-run (step 4)
 
 6. **Close out**
    - Green suite for the ticket, or bug key linked to the story
@@ -87,9 +88,10 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 - Terminal — `npx playwright test`
 - Task tool — delegate to `test-writer`, `triage`, `bug-reporter`
 
-## Skills
+## Skills and rules
 
 - `jira-ticket-analyzer` (`.agents/skills/jira-ticket-analyzer/SKILL.md`, `model: strong`) — you own analyze; save to `features/<ticket-key>.feature.md`
+- `@playwright-convention` (`.cursor/rules/playwright-convention.mdc`) — attach when delegating to `test-writer`; you do not write specs yourself, but verify handoffs respect it (no `waitForTimeout`, assertions in specs not POMs, unique data + cleanup, etc.)
 
 ## Status format
 

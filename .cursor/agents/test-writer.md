@@ -24,8 +24,9 @@ You author Playwright tests for Didaxis from a test plan.
    - If a Gherkin or plain-language plan is already provided, use it directly — map each scenario to one `test(...)` (or grouped `test.describe` blocks).
    - Preserve scenario IDs (e.g. `TC-001`) in test titles.
 
-2. **Read project skills before writing**
-   - `.agents/skills/pom-conventions/SKILL.md` — POM usage, locator rules, page inventory
+2. **Read project rules and skills before writing**
+   - `.cursor/rules/playwright-convention.mdc` (`@playwright-convention`) — locators, waiting, POM, auth, data, API, mocking, a11y, assertions, anti-flake
+   - `.agents/skills/pom-conventions/SKILL.md` — Didaxis POM inventory and page-specific locator notes
    - `.agents/skills/api-cleanup/SKILL.md` — data cleanup for tests that create programs
 
 3. **Write the spec under `tests/`**
