@@ -101,11 +101,11 @@ explicit unauthenticated scenarios.
 
 ## Known demo guardrails
 
-Do not attempt to fix or work around these intentional demo-app behaviors:
+Use `test.fail(...)` **only** for behaviors explicitly confirmed as intentional by a human and listed here. If the table is empty, do not mask failing tests — treat mismatches with AC as app bugs (`@qa-mission`).
 
 | Test | Guardrail |
 |------|-----------|
-| DS-2 TC-009 | Duplicate program names on rename are **allowed** (hardcoded demo bug). Mark with `test.fail(true, 'Known demo bug — duplicate program names are allowed on rename.')`. |
+| *(none)* | — |
 
 ## Output
 

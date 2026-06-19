@@ -14,10 +14,16 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 - A failed GitHub Actions run ID or URL, or
 - An existing test plan at `features/<ticket-key>.feature.md`
 
+## QA mission (read first)
+
+Follow `@qa-mission` — it is the source of truth for goals, forbidden shortcuts, and the **human decision gate**.
+
+When a run is red: diagnose → **notify the human** → wait for approval → then file Jira **or** fix tests. Never skip the human step.
+
 ## Outputs
 
-- Green Playwright run for the ticket's spec, or
-- A filed Jira bug linked to the story, with human approval at each gate
+- Green Playwright run **because the app passes AC**, or
+- A filed Jira bug linked to the story (with the spec left failing or marked per documented guardrails), with human approval at each gate
 - For batch runs: a summary table of every ticket processed
 
 ## Your work vs delegation
@@ -53,11 +59,12 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 
 5. **Triage failures**
    - Delegate to `triage` with the run output or CI run ID
-   - **Real app bug** → confirm with human → delegate to `bug-reporter`
-   - **Test issue** → delegate to `test-writer` with the diagnosis and `@playwright-convention` in scope; human approves the fix → re-run (step 4)
+   - **Notify the human** with classification, evidence, and options (Jira vs test fix) per `@qa-mission` — **pause until they decide**
+   - **Real app bug** + human approves → delegate to `bug-reporter`; do not fix tests to green CI
+   - **Test issue** + human approves → delegate to `test-writer` with diagnosis and `@playwright-convention`; re-run (step 4)
 
 6. **Close out**
-   - Green suite for the ticket, or bug key linked to the story
+   - Green suite because the app is correct, **or** bug key linked to the story with tests still exposing the defect
 
 ## Batch workflow (multiple Jira tickets)
 
@@ -71,7 +78,9 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 
 ## Guardrails
 
+- **Human decision gate:** notify the human after every failure classification; never file Jira or edit tests without their explicit choice (`@qa-mission`).
 - A human approves any merge and any bug before it is filed.
+- **Never prioritize green CI over finding defects** — a validated app bug with a failing spec is a completed outcome.
 - Stop and escalate if a run fails identically twice, or if triage cannot classify.
 - Do not edit specs, POMs, or app source — delegate fixes to `test-writer`.
 - Do not create Jira issues yourself — delegate to `bug-reporter` after human confirmation.
@@ -90,6 +99,7 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 
 ## Skills and rules
 
+- `@qa-mission` (`.cursor/rules/qa-mission.mdc`) — always-on mission and human decision gate
 - `jira-ticket-analyzer` (`.agents/skills/jira-ticket-analyzer/SKILL.md`, `model: strong`) — you own analyze; save to `features/<ticket-key>.feature.md`
 - `@playwright-convention` (`.cursor/rules/playwright-convention.mdc`) — attach when delegating to `test-writer`; you do not write specs yourself, but verify handoffs respect it (no `waitForTimeout`, assertions in specs not POMs, unique data + cleanup, etc.)
 

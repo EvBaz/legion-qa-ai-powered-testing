@@ -163,7 +163,7 @@ test.describe('DS-2: Edit Existing Program Details', () => {
     });
 
     test.skip('TC-009: Non-admin users do not see the edit icon on programs', async () => {
-      // Non-admin role / session not available in this test environment.
+      // Blocked: non-admin credentials unavailable — see features/DS-2.feature.md TC-009.
     });
 
     test('TC-010: Clicking Save without modifications does not alter program data', async ({
@@ -215,24 +215,22 @@ test.describe('DS-2: Edit Existing Program Details', () => {
       await expect(programs.programNameText(trimmedName)).toBeVisible();
     });
 
-    test.fail(
-      'TC-013: Renaming a program to an existing name is rejected',
-      async ({ page }) => {
-        // Known demo bug — duplicate program names are allowed on rename.
-        const programs = new ProgramsPage(page);
-        const existingName = uniqueName('Web Development 2026');
-        const otherName = uniqueName('Data Science 101');
-        await createProgramWithDescription(programs, existingName, 'First program description');
-        await createProgramWithDescription(programs, otherName, 'Second program description');
+    test('TC-013: Renaming a program to an existing name is rejected', async ({ page }) => {
+      const programs = new ProgramsPage(page);
+      const existingName = uniqueName('Web Development 2026');
+      const otherName = uniqueName('Data Science 101');
+      await createProgramWithDescription(programs, existingName, 'First program description');
+      await createProgramWithDescription(programs, otherName, 'Second program description');
 
-        await programs.openEditModal(otherName);
-        await programs.editProgramModal.fillProgramName(existingName);
-        await programs.editProgramModal.save();
+      await programs.openEditModal(otherName);
+      const modal = programs.editProgramModal;
+      await modal.fillProgramName(existingName);
+      await modal.save();
 
-        await expect(programs.editProgramModal.validationError).toBeVisible();
-        await expect(programs.programNameText(otherName)).toBeVisible();
-      },
-    );
+      await expect(modal.dialog).toBeVisible();
+      await expect(modal.validationError).toBeVisible();
+      await expect(programs.programNameText(otherName)).toBeVisible();
+    });
 
     test('TC-014: Double-clicking Save does not produce errors or inconsistent state', async ({
       page,
@@ -252,7 +250,7 @@ test.describe('DS-2: Edit Existing Program Details', () => {
     });
 
     test.skip('TC-015: Concurrent edits to the same program do not cause data loss', async () => {
-      // Concurrent admin sessions not available in this test environment.
+      // Blocked: concurrent admin sessions unavailable — see features/DS-2.feature.md TC-015.
     });
 
     test('TC-016: Description can be cleared during edit', async ({ page }) => {

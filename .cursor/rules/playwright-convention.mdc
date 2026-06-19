@@ -17,6 +17,8 @@ globs: tests/**
 
 Each rule below shows the standard, then a ✅ good and ❌ bad example. When in doubt, prefer the example a *user* (or a screen reader) would recognize over the one coupled to markup.
 
+**QA mission:** tests encode acceptance criteria (`@qa-mission`). When the app violates AC, the test **should** fail — do not weaken assertions, skip checks, or change expectations to match broken behavior (except documented demo guardrails in `pom-conventions`). Notify the human after failures; file Jira or fix tests only with their approval.
+
 ## 1. Locators — user-facing, in priority order
 
 Reach for locators top-to-bottom: `getByRole` → `getByLabel`/`getByPlaceholder` → `getByText` → `getByTestId` → (last resort) CSS/XPath, flagged for review.

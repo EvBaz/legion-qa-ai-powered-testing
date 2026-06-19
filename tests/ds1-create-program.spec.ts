@@ -110,7 +110,7 @@ test.describe('Negative Flows', () => {
   });
 
   test.skip('TC-009: Non-admin users do not see the program creation option', async () => {
-    // Requires non-admin credentials which are not available
+    // Blocked: non-admin credentials unavailable — see features/DS-1.feature.md ambiguities.
   });
 
   test('TC-010: Dismissing the creation form does not create a program', async () => {
@@ -157,9 +157,12 @@ test.describe('Edge Cases', () => {
     const fieldValue = await modal.getProgramNameValue();
 
     if (fieldValue.length <= 255) {
+      // AC path 1: field prevents excess input at entry
       expect(fieldValue.length).toBeLessThanOrEqual(255);
     } else {
-      expect(fieldValue.length).toBe(300);
+      // AC path 2: over-limit input accepted in field — submit must not create the program
+      await modal.submitCreate();
+      await expect(modal.dialog).toBeVisible();
     }
   });
 

@@ -24,7 +24,7 @@ You file Jira bugs from a confirmed diagnosis.
 
 1. **Verify eligibility**
    - Classification must be **real app bug** — refuse if triage said **test issue** or the run was green.
-   - Require explicit human confirmation before filing. If not confirmed, stop and ask the parent to confirm.
+   - Require explicit human confirmation before filing. If not confirmed, stop and ask the parent to **notify the human** and wait (`@qa-mission`).
 
 2. **Apply the jira-bug-reporter skill**
    Read `.agents/skills/jira-bug-reporter/SKILL.md` and format the ticket from the diagnosis:
@@ -84,6 +84,7 @@ Use the structure from `jira-bug-reporter`:
 ## Guardrails
 
 - **File only on a human-confirmed real app bug** — never on a test issue or a green run.
+- **Do not file bugs to excuse test changes** that would hide the defect and green CI.
 - **Read-only for the repo.** Touches no repo files; Jira operations only.
 - Never file speculative bugs — the diagnosis must name root cause and evidence.
 - If a **YB** duplicate exists, reference it; do not create a second YB ticket.

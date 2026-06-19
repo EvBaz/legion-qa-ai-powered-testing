@@ -60,7 +60,7 @@ Any test that creates a program (or other persistent record) must use the cleanu
 
 ## Known demo guardrails
 
-Follow `pom-conventions` for intentional demo-app behaviors (e.g. DS-2 TC-009 duplicate rename — mark with `test.fail(...)` and a comment explaining the known bug).
+Only if a human confirmed intentional demo behavior and it is listed in `pom-conventions` — otherwise a failing test that matches AC is an app bug (`@qa-mission`).
 
 ## Guardrails
 
@@ -68,6 +68,8 @@ Follow `pom-conventions` for intentional demo-app behaviors (e.g. DS-2 TC-009 du
 - A human approves the PR before merge.
 - Do not hardcode secrets (`DIDAXIS_API_TOKEN`, credentials).
 - Do not work around missing acceptance criteria silently — list ambiguities in the handoff.
+- **When fixing a failing test:** only after triage classified **test issue** **and** the human approved a test fix. Fixes must align with AC — never relax assertions, skip scenarios, or change expected values to match broken app behavior.
+- **When triage classified real app bug:** do not edit the spec; return to the parent for human decision → `bug-reporter` if approved. Exception: documented demo guardrails in `pom-conventions` (`test.fail` with known-bug comment).
 
 ## Handoff format
 

@@ -1,0 +1,90 @@
+---
+description: Core QA mission — test the app, find defects, never green-wash CI. Always notify the human before filing Jira or fixing tests.
+alwaysApply: true
+---
+
+# QA Mission
+
+This repo exists to **validate Didaxis against acceptance criteria** and **surface defects** — in the application and in the test layer. A green pipeline is not the goal when the app or the tests are wrong.
+
+## What success looks like
+
+| Outcome | When |
+|---------|------|
+| Green Playwright run | The app behaves correctly per AC and the spec is sound |
+| Jira bug filed | Triage confirms a **real app bug**; human approved filing |
+| Test fix merged | Triage confirms a **test issue**; human approved the patch |
+
+A **red test that correctly exposes broken app behavior** is a successful QA finding — not a problem to silence.
+
+## What you must never do
+
+Without **explicit human approval** after triage:
+
+- Weaken assertions, delete checks, or change expected values to match broken UI/API
+- Add `test.skip`, arbitrary waits, or `test.fail` to hide failures (except documented demo guardrails in `pom-conventions`)
+- Rewrite tests so CI goes green while the app still violates AC
+- Create a Jira bug ticket on your own
+- Edit specs, POMs, or fixtures to "fix" a failure
+
+**Green CI means the app is correct — not that tests were adjusted to match bugs.**
+
+## Human decision gate (mandatory)
+
+Whenever a test fails (locally or in CI), **diagnose first, then notify the human** — do not act unilaterally.
+
+### 1. Diagnose
+
+Apply triage (`.cursor/agents/triage.md`, `.agents/skills/ci-failure-triage/SKILL.md`):
+
+- Classify: **real app bug** | **test issue**
+- Cite evidence: expected vs actual, trace/screenshot, affected file, AC reference
+
+### 2. Notify the human
+
+Present a structured summary and **pause for a decision**:
+
+```
+Classification: real app bug | test issue
+
+Root cause:
+<1–3 sentences with file/evidence>
+
+Options:
+A) File Jira bug (real app bug) — draft summary ready
+B) Fix test/POM (test issue) — proposed patch described, not applied
+C) Escalate / need more info
+
+Recommendation: A | B | C — <one sentence why>
+```
+
+### 3. Wait for explicit approval
+
+Proceed **only** after the human chooses:
+
+| Human says | You may do |
+|------------|------------|
+| File bug / create Jira / option A | Delegate to `bug-reporter` or apply `jira-bug-reporter` skill |
+| Fix test / option B | Delegate to `test-writer` or apply the approved patch |
+| Hold / need more info | Investigate further; do not file or edit |
+
+If the human does not respond, **do not** file Jira tickets or merge test fixes — report status and wait.
+
+## Classification quick reference
+
+| Signal | Likely classification |
+|--------|----------------------|
+| App behavior contradicts AC; test and POM look correct | **Real app bug** → notify → Jira (if human approves) |
+| Wrong locator, flake, bad data, test contradicts AC, missing cleanup | **Test issue** → notify → fix test (if human approves) |
+| Missing accessible name/role required by AC | **Real app bug** (a11y) → notify → Jira |
+| Known demo guardrail in `pom-conventions` | **Test issue** — use documented `test.fail`; still notify if unsure |
+
+When classification is ambiguous, **notify the human with both options** — do not guess to unblock CI.
+
+## Related rules and agents
+
+- `@qa-orchestrator` — end-to-end workflow with delegation
+- `@playwright-convention` — how tests are written
+- `triage` agent — read-only diagnosis
+- `bug-reporter` agent — Jira filing after human confirmation
+- `test-writer` agent — spec changes after human confirmation

@@ -52,7 +52,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
     });
 
     test.skip('TC-004: Non-admin users do not see the delete action', async () => {
-      // Non-admin role / session not available in this test environment.
+      // Blocked: non-admin credentials unavailable — see features/DS-4.feature.md ambiguities.
     });
   });
 
