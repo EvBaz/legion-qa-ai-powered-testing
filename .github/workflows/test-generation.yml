@@ -1,0 +1,119 @@
+name: Test Generation
+
+on:
+  schedule:
+    # For Summer (MDT) - Runs at 13:00 UTC / 7:00 MDT
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Analyze and plan only — no spec write, Playwright run, or PR
+        type: boolean
+        default: false
+      ticket_key:
+        description: Optional Jira key (e.g. DS-5) — overrides backlog queue JQL
+        type: string
+        required: false
+
+concurrency:
+  group: test-generation
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    name: Generate Playwright tests from backlog
+    runs-on: ubuntu-latest
+    environment: dev1
+    timeout-minutes: 120
+    env:
+      CI: true
+      DIDAXIS_URL: ${{ secrets.DIDAXIS_URL }}
+      DIDAXIS_EMAIL: ${{ secrets.DIDAXIS_EMAIL }}
+      DIDAXIS_PASSWORD: ${{ secrets.DIDAXIS_PASSWORD }}
+      DIDAXIS_API_TOKEN: ${{ secrets.DIDAXIS_API_TOKEN }}
+      ATLASSIAN_BASE_URL: ${{ secrets.ATLASSIAN_BASE_URL }}
+      ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
+      JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Generate tests from In Progress backlog
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+          TICKET_KEY: ${{ inputs.ticket_key }}
+        run: |
+          OVERRIDES=""
+          if [ -n "$TICKET_KEY" ]; then
+            OVERRIDES="Target ticket: ${TICKET_KEY} (ignore default queue JQL; process this ticket only)."
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            OVERRIDES="${OVERRIDES} DRY RUN: analyze acceptance criteria and save plan to features/<ticket-key>.feature.md only. Do not write specs, run Playwright, open PRs, or apply labels."
+          fi
+
+          agent -p --force --trust --output-format text "$(cat <<EOF
+          You are the QA orchestrator for this Playwright test repository. Follow @qa-orchestrator (Backlog mode) and @qa-mission.
+
+          Queue JQL (unless overridden):
+          project = DS AND status = "In Progress" AND labels != tests-generated ORDER BY updated ASC
+
+          Budget: process exactly 1 ticket this run (backlog mode). Never merge any pull request.
+          ${OVERRIDES}
+
+          For the single ticket in the queue:
+          1. Fetch the ticket via Jira REST API (ATLASSIAN_EMAIL + ATLASSIAN_API_TOKEN against ATLASSIAN_BASE_URL; project key JIRA_PROJECT_KEY).
+          2. Analyze acceptance criteria per jira-ticket-analyzer; save plan to features/<ticket-key>.feature.md.
+          3. Write a conforming Playwright spec under tests/ following .cursor/rules/playwright-convention.mdc, pom-conventions, and api-cleanup. Use Page Object Models from pages/; do not modify application source.
+          4. Run the spec: npx playwright test <spec-path>
+          5. If green: open a PR linked to the Jira ticket (ticket key in branch name, commit message, and PR title/body). Add label tests-generated to the PR via gh. Add Jira label tests-generated on the ticket via REST API.
+          6. If red and triage indicates a real app bug: stop on that ticket, summarize failure evidence, do not open a PR. Do not weaken assertions to green CI.
+          7. If red and triage indicates a test issue: fix tests/POM per conventions, re-run once; if still red with the same error, record blocked and stop.
+
+          Guardrails:
+          - Write only under tests/, pages/, and features/.
+          - One ticket per branch/PR when possible.
+          - Do not merge PRs; a human approves merge.
+          - Stop after the single ticket is processed (or immediately if the queue is empty).
+          - End with a backlog summary table: Ticket / Plan / Spec / PR / Run / Outcome.
+          EOF
+          )"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
