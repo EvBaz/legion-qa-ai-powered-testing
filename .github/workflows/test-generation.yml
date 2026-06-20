@@ -42,6 +42,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -90,6 +91,7 @@ jobs:
           project = DS AND status = "In Progress" AND labels != tests-generated ORDER BY updated ASC
 
           Budget: process exactly 1 ticket this run (backlog mode). Never merge any pull request.
+          Always work from the main branch (already checked out). Create feature branches from main only.
           ${OVERRIDES}
 
           For the single ticket in the queue:
@@ -97,9 +99,10 @@ jobs:
           2. Analyze acceptance criteria per jira-ticket-analyzer; save plan to features/<ticket-key>.feature.md.
           3. Write a conforming Playwright spec under tests/ following .cursor/rules/playwright-convention.mdc, pom-conventions, and api-cleanup. Use Page Object Models from pages/; do not modify application source.
           4. Run the spec: npx playwright test <spec-path>
-          5. If green: open a PR linked to the Jira ticket (ticket key in branch name, commit message, and PR title/body). Add label tests-generated to the PR via gh. Add Jira label tests-generated on the ticket via REST API.
-          6. If red and triage indicates a real app bug: stop on that ticket, summarize failure evidence, do not open a PR. Do not weaken assertions to green CI.
-          7. If red and triage indicates a test issue: fix tests/POM per conventions, re-run once; if still red with the same error, record blocked and stop.
+          5. Unless DRY RUN: commit plan + spec (+ any POM changes) on a branch named for the ticket, push, and open a PR linked to the Jira ticket (ticket key in branch name, commit message, and PR title/body). Add label tests-generated to the PR via gh. Add Jira label tests-generated on the ticket via REST API.
+          6. If the run is green, note passing results in the PR body.
+          7. If the run is red and triage indicates a real app bug: still open the PR (do not weaken assertions). Summarize failure evidence and triage in the PR body; note that CI is expected to fail until the app is fixed. Do not file Jira bugs without human approval.
+          8. If red and triage indicates a test issue: fix tests/POM per conventions, re-run once; if still red with the same error, record blocked and stop (PR may still be opened if spec exists).
 
           Guardrails:
           - Write only under tests/, pages/, and features/.
