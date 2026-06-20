@@ -10,6 +10,9 @@ export class ProgramsPage extends BasePage {
   readonly newProgramButton: Locator;
   readonly programsTable: Locator;
   readonly selectProgramHint: Locator;
+  readonly semestersSectionHeading: Locator;
+  readonly addSemesterButton: Locator;
+  readonly manageCoursesButton: Locator;
   readonly emptyStateMessage: Locator;
   readonly createProgramButton: Locator;
   readonly newProgramModal: NewProgramModal;
@@ -22,6 +25,9 @@ export class ProgramsPage extends BasePage {
     this.newProgramButton = page.getByRole('button', { name: '+ New Program' });
     this.programsTable = page.getByRole('table');
     this.selectProgramHint = page.getByText('Select a program to manage semesters');
+    this.semestersSectionHeading = page.getByText('Semesters & scheduling config');
+    this.addSemesterButton = page.getByRole('button', { name: '+ Semester' });
+    this.manageCoursesButton = page.getByRole('button', { name: 'Manage Courses' });
     this.emptyStateMessage = page.getByText(/no programs/i);
     this.createProgramButton = page.getByRole('button', { name: 'Create Program' });
     this.newProgramModal = new NewProgramModal(page);
@@ -59,9 +65,13 @@ export class ProgramsPage extends BasePage {
     return this.programRow(programName).getByRole('button', { name: new RegExp(`^Delete ${this.escapeRegex(programName)}`) });
   }
 
+  programDetailHeading(programName: string): Locator {
+    return this.page.getByRole('heading', { name: programName, level: 4 });
+  }
+
   detailPanel(programName: string): Locator {
     return this.page.getByRole('main').filter({
-      has: this.page.getByRole('heading', { name: programName, level: 4 }),
+      has: this.programDetailHeading(programName),
     });
   }
 
