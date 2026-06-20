@@ -1,5 +1,5 @@
 ---
-description: Coordinator for QA work. Takes a Jira ticket, a JQL batch, or a red CI build and drives it to done by delegating to specialist agents. Use @qa-orchestrator for end-to-end runs.
+description: Coordinator for QA work. Takes a Jira ticket, a JQL batch, a backlog trigger (In Progress DS tickets without tests-generated), or a red CI build and drives it to done by delegating to specialist agents. Use @qa-orchestrator for end-to-end runs.
 alwaysApply: false
 ---
 
@@ -12,7 +12,8 @@ When this rule is active, **you** coordinate QA work for this Playwright test re
 - A Jira ticket key (e.g. `DS-3`), or
 - A JQL query or filter (e.g. `project = DS AND sprint in openSprints()`), or
 - A failed GitHub Actions run ID or URL, or
-- An existing test plan at `features/<ticket-key>.feature.md`
+- An existing test plan at `features/<ticket-key>.feature.md`, or
+- An external backlog trigger (Cursor Automation, headless `agent -p`, local batch) — routes to **Backlog mode**; the agent does not choose when to run
 
 ## QA mission (read first)
 
@@ -25,10 +26,11 @@ When a run is red: diagnose → **notify the human** → wait for approval → t
 - Green Playwright run **because the app passes AC**, or
 - A filed Jira bug linked to the story (with the spec left failing or marked per documented guardrails), with human approval at each gate
 - For batch runs: a summary table of every ticket processed
+- For backlog mode: **one PR per ticket** (linked to Jira), `tests-generated` label applied, backlog summary table — merges and ticket closure require human approval
 
 ## Your work vs delegation
 
-**You do yourself:** read Jira/CI context, apply `jira-ticket-analyzer` to produce test plans, run `npx playwright test`, route to specialists, track loop limits, escalate when stuck, produce batch summaries.
+**You do yourself:** read Jira/CI context, apply `jira-ticket-analyzer` or `explore-and-generate` to produce test plans, run `npx playwright test`, route to specialists, track loop limits, escalate when stuck, produce batch/backlog summaries.
 
 **Delegate only:**
 - `test-writer` — turn a plan into a spec or propose a test fix; must follow `@playwright-convention` and project skills
@@ -76,6 +78,44 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 4. **Batch guardrails** — stop if **3 tickets** escalate in a row; pause every **5 tickets** unless user opted out
 5. **Batch summary** — table with Plan / Spec / Run / Outcome; totals and paths
 
+## Backlog mode (queued DS tickets)
+
+Use when an **external trigger** starts the coordinator — a Cursor Automation, a headless `agent -p` run, or a local batch script. The agent **never decides when to start**; it only processes the queue the trigger hands it.
+
+### Trigger and queue
+
+Default JQL (unless the trigger overrides):
+
+```jql
+project = DS AND status = "In Progress" AND labels != tests-generated ORDER BY updated ASC
+```
+
+1. **Fetch queue** — Atlassian MCP `searchJiraIssuesUsingJql` with the JQL above; cap at **1 ticket** per run (budget).
+2. **No human scope confirmation** — the trigger defines the run; proceed immediately with the fetched list.
+3. **Skip labeled tickets** — any ticket already carrying `tests-generated` is excluded by JQL; do not re-process.
+
+### Per-ticket pipeline
+
+For the single ticket in the queue:
+
+1. **Analyze** — apply `jira-ticket-analyzer`; save plan to `features/<ticket-key>.feature.md`
+2. **Write tests** — delegate to `test-writer` with the plan path or ticket key and `@playwright-convention`
+3. **Run** — `npx playwright test <spec-path>`
+4. **Triage on red** — delegate to `triage`; **notify the human** per `@qa-mission` and wait for approval before filing or fixing
+5. **Close out ticket work** — see outputs below; run ends after this ticket (next trigger picks up the queue).
+
+**Identical failure guard:** if the spec fails with the **same error twice**, stop retrying, record `blocked` with the error signature, and end the run.
+
+### Outputs (per ticket)
+
+- **One PR per ticket** — branch and PR scoped to that ticket's spec/plan changes; PR title or body must link the Jira ticket (e.g. `DS-3`).
+- **Label after handoff** — add Jira label `tests-generated` on the ticket once the PR is opened (spec + plan committed), so the next backlog run skips it. Apply the label even when the run is red but triage is pending — the tests exist; human gates handle bugs vs fixes.
+- **Never merge or close** — do not merge PRs, resolve Jira tickets, or close issues without explicit human approval.
+
+### Backlog summary
+
+After the run, produce a table: Ticket / Plan / Spec / PR link / Run / Outcome (`green` | `red-pending-human` | `blocked-identical-failure` | `skipped`). Include totals and any tickets left in queue for the next trigger.
+
 ## Guardrails
 
 - **Human decision gate:** notify the human after every failure classification; never file Jira or edit tests without their explicit choice (`@qa-mission`).
@@ -97,10 +137,24 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 - Terminal — `npx playwright test`
 - Task tool — delegate to `test-writer`, `triage`, `bug-reporter`
 
+## Routing
+
+| Entry point | Workflow | Analyze skill |
+|---|---|---|
+| Jira ticket key (e.g. `DS-3`) | Single-ticket | `jira-ticket-analyzer` |
+| JQL / sprint / epic (user-initiated) | Batch | `jira-ticket-analyzer` per ticket |
+| Automation / `agent -p` / local batch (no ticket in prompt) | Backlog mode | `jira-ticket-analyzer` per ticket |
+| Failed CI run ID or URL | Single-ticket from step 5 | — (plan may already exist) |
+| Plan at `features/<ticket-key>.feature.md` | Single-ticket from step 3 | — |
+| "Find untested flows", coverage gap, explore page (no ticket) | Discovery only — hand off plan to test-writer in a follow-up | `explore-and-generate` |
+
+**Skill choice:** ticket or AC present → `jira-ticket-analyzer`. No ticket, open-ended coverage discovery → `explore-and-generate` (read-only; one Gherkin plan per run; no spec writes in that skill).
+
 ## Skills and rules
 
 - `@qa-mission` (`.cursor/rules/qa-mission.mdc`) — always-on mission and human decision gate
-- `jira-ticket-analyzer` (`.agents/skills/jira-ticket-analyzer/SKILL.md`, `model: strong`) — you own analyze; save to `features/<ticket-key>.feature.md`
+- `jira-ticket-analyzer` (`.agents/skills/jira-ticket-analyzer/SKILL.md`, `model: strong`) — you own analyze for ticket-backed work; save to `features/<ticket-key>.feature.md`
+- `explore-and-generate` (`.cursor/skills/explore-and-generate/SKILL.md`) — ticket-less coverage discovery; save to `features/explore-<page-slug>-<flow-slug>.feature.md`; exploration is read-only (no spec writes or Playwright runs in that skill)
 - `@playwright-convention` (`.cursor/rules/playwright-convention.mdc`) — attach when delegating to `test-writer`; you do not write specs yourself, but verify handoffs respect it (no `waitForTimeout`, assertions in specs not POMs, unique data + cleanup, etc.)
 
 ## Status format
@@ -108,3 +162,5 @@ Use when the user gives a JQL query, sprint name, epic, or "process all tickets 
 **Single ticket:** Task, Phase, Delegations used N/3, Spec path, Last run, Next action.
 
 **Batch:** Batch scope, Progress N/M, Current ticket + phase, Checkpoint, Next.
+
+**Backlog mode:** Queue JQL, Budget 1 ticket, Current ticket + phase, PR link, Labels applied, Next.
