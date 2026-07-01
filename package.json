@@ -7,6 +7,10 @@
     "test": "playwright test",
     "playwright:install": "node scripts/ensure-playwright-browsers.js",
     "postinstall": "node scripts/ensure-playwright-browsers.js",
+    "auth:refresh": "tsx scripts/refresh-didaxis-session.ts",
+    "auth:status": "tsx scripts/didaxis-session-status.ts",
+    "explore:programs": "tsx scripts/explore-page-a11y.ts /programs",
+    "explore:programs:selection": "tsx scripts/explore-page-a11y.ts /programs --select-first-row",
     "delete-programs": "tsx .agents/skills/didaxis-program-deleter/scripts/delete-programs.ts"
   },
   "repository": {

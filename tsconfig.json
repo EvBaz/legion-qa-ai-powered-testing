@@ -16,6 +16,7 @@
     "global-setup.ts",
     "global-teardown.ts",
     "lib/**/*.ts",
+    "scripts/**/*.ts",
     ".agents/skills/didaxis-program-deleter/scripts/**/*.ts"
   ]
 }

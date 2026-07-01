@@ -32,8 +32,23 @@ reviewable Gherkin plan for **test-writer** to implement — not Playwright code
   features into one plan.
 - **Accessibility tree only.** Use `browser_snapshot` (role/name/ref YAML).
   Do not rely on screenshots or pixel descriptions to infer UI behavior.
-- **Auth first.** Reuse `playwright/.auth/user.json` if present; otherwise
-  sign in via the browser MCP against `DIDAXIS_URL` credentials in `.env`.
+- **Auth first (session token).** Before crawling:
+  1. Run `npm run auth:status` — if `valid` is false, run `npm run auth:refresh`.
+  2. Session file: `playwright/.auth/user.json` (cookies + localStorage from Playwright).
+  3. In Browser MCP: `browser_navigate` to `programsUrl` from the status JSON.
+  4. If snapshot shows login form (`Email` + `Sign In`), bootstrap session:
+     - Read `lib/browser-mcp-auth.ts` → `getBrowserMcpAuthPlan()`.
+     - `browser_navigate` to `baseUrl` (origin), then try each `cdpCookies` entry via
+       `browser_cdp` method `Network.setCookie` (may be blocked).
+     - Run `browser_cdp` `Runtime.evaluate` with `localStorageScript`.
+     - `browser_navigate` to `programsUrl` again.
+  5. If still on login: UI fallback — `browser_fill` Email/Password from `.env`
+     (`DIDAXIS_EMAIL`, `DIDAXIS_PASSWORD`), click `Sign In`.
+     (Cursor safety may block autonomous credential fill — user can log in once in Browser Tab.)
+  6. **Session-based explore (recommended):** `npm run auth:refresh` then
+     `npm run explore:programs` or `npm run explore:programs:selection` —
+     uses `playwright/.auth/user.json` without exposing secrets to Browser MCP.
+  Never print credential values in chat.
 
 ## Steps
 
