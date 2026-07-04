@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
+    "test": "node scripts/ensure-playwright-browsers.js && playwright test",
     "playwright:install": "node scripts/ensure-playwright-browsers.js",
     "postinstall": "node scripts/ensure-playwright-browsers.js",
     "auth:refresh": "tsx scripts/refresh-didaxis-session.ts",

@@ -12,7 +12,7 @@ export class NewProgramModal {
 
   constructor(page: Page) {
     this.page = page;
-    this.dialog = page.getByRole('dialog', { name: 'New Program' });
+    this.dialog = page.getByRole('dialog', { name: 'New Programs' });
     this.programNameInput = this.dialog.getByLabel('Program Name');
     this.descriptionInput = this.dialog.getByLabel('Description');
     this.createButton = this.dialog.getByRole('button', { name: 'Create', exact: true });
