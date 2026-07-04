@@ -24,7 +24,8 @@ When a run is red: diagnose → **notify the human** → wait for approval → t
 ## Outputs
 
 - Green Playwright run **because the app passes AC**, or
-- A filed Jira bug linked to the story (with the spec left failing or marked per documented guardrails), with human approval at each gate
+- A filed Jira bug linked to the story (with the spec left failing or marked per documented guardrails), with human approval at each gate, or
+- A **repair PR** from self-heal (locator drift only): green re-run with unchanged assertions, linked to the failed CI run — **human merges**
 - For batch runs: a summary table of every ticket processed
 - For backlog mode: **one PR per ticket** (linked to Jira), `tests-generated` label applied, backlog summary table — merges and ticket closure require human approval
 
@@ -33,9 +34,10 @@ When a run is red: diagnose → **notify the human** → wait for approval → t
 **You do yourself:** read Jira/CI context, apply `jira-ticket-analyzer` or `explore-and-generate` to produce test plans, run `npx playwright test`, route to specialists, track loop limits, escalate when stuck, produce batch/backlog summaries.
 
 **Delegate only:**
-- `test-writer` — turn a plan into a spec or propose a test fix; must follow `@playwright-convention` and project skills
-- `triage` — diagnose a red run (real app bug vs test issue)
+- `test-writer` — turn a plan into a spec or propose a non-drift test fix; must follow `@playwright-convention` and project skills
+- `triage` — diagnose a red run (real app bug vs test issue / locator drift)
 - `bug-reporter` — file a human-confirmed real app bug in Jira
+- **Self-heal** — `.cursor/skills/self-heal/SKILL.md`; locator-drift repair only (POM patch + re-run + repair PR); you apply the skill after triage + human approval, not for real app bugs
 
 ## Single-ticket workflow
 
@@ -62,11 +64,49 @@ When a run is red: diagnose → **notify the human** → wait for approval → t
 5. **Triage failures**
    - Delegate to `triage` with the run output or CI run ID
    - **Notify the human** with classification, evidence, and options (Jira vs test fix) per `@qa-mission` — **pause until they decide**
-   - **Real app bug** + human approves → delegate to `bug-reporter`; do not fix tests to green CI
-   - **Test issue** + human approves → delegate to `test-writer` with diagnosis and `@playwright-convention`; re-run (step 4)
+   - **Real app bug** + human approves → delegate to `bug-reporter`; do not fix tests to green CI; **never self-heal**
+   - **Test issue (locator drift)** + human approves → **Heal on red** (below)
+   - **Test issue (non-drift)** + human approves → delegate to `test-writer` with diagnosis and `@playwright-convention`; re-run (step 4)
 
 6. **Close out**
-   - Green suite because the app is correct, **or** bug key linked to the story with tests still exposing the defect
+   - Green suite because the app is correct, **or** bug key linked to the story with tests still exposing the defect, **or** repair PR open and green re-run pending human merge
+
+## Heal on red
+
+Use when a **CI run or local run is red** and triage classifies **test issue (locator drift / stale POM)** — not for real app bugs, not for assertion or expectation changes.
+
+### Flow
+
+1. **Triage first** — delegate to `triage` with the failed run ID or URL. Do not heal until classification is **drift** and the human chose **fix test / option B** (`@qa-mission`).
+2. **Drift → self-heal** — read and apply `.cursor/skills/self-heal/SKILL.md`:
+   - Re-discover the element via **Playwright MCP / browser a11y snapshot** (role + accessible name)
+   - Patch **only** the drifted locator in the POM triage named
+   - Re-run to prove green with **assertions unchanged** (zero edits under `tests/`)
+   - Open a **repair PR** (`heal/<short-description>`) linking the failed run ID/URL, locator diff, and re-run command
+3. **Real app bug → bug-reporter** — delegate to `bug-reporter` to file and link the Jira bug to the story/run. **Never self-heal.** Leave the spec failing or per documented guardrails.
+4. **Ambiguous / missing classification** — stop; notify the human; do not heal or file without a decision.
+
+### Budget and stops
+
+| Rule | Limit |
+|------|--------|
+| Heals per red run | **At most 5** (one locator fix each; no batching unrelated heals) |
+| Prove green | After each heal, re-run must pass with **unchanged assertions** |
+| Won't prove green | **Stop and escalate** — do not weaken assertions, add skips, or loop blindly |
+| Merge | **Never merge** a repair PR without explicit human approval |
+
+### Hard refusals (orchestrator enforces)
+
+- **Never heal an assertion** — specs are read-only during self-heal; `.cursor/hooks/block-weakened-assertions.js` blocks weakened `tests/**` edits
+- **Never heal a real app bug** — triage says app bug → `bug-reporter`, not self-heal
+- **Never merge without a human** — repair PRs are proposals only
+
+### After a successful heal
+
+- Report: failed run link, triage classification, old → new locator diff, re-run result (green), **assertions unchanged**
+- If the run is still red after a heal, consume budget for the next root-cause locator **only** if triage still says drift; otherwise re-triage or escalate
+- Human merges the repair PR when satisfied — orchestrator does not merge
+
 
 ## Batch workflow (multiple Jira tickets)
 
@@ -102,6 +142,9 @@ For the single ticket in the queue:
 2. **Write tests** — delegate to `test-writer` with the plan path or ticket key and `@playwright-convention`
 3. **Run** — `npx playwright test <spec-path>`
 4. **Triage on red** — delegate to `triage`; **notify the human** per `@qa-mission` and wait for approval before filing or fixing
+   - **Drift** + human approves → **Heal on red** (self-heal skill; repair PR linked to run)
+   - **Real app bug** + human approves → `bug-reporter`; never self-heal
+   - **Non-drift test issue** + human approves → `test-writer`
 5. **Close out ticket work** — see outputs below; run ends after this ticket (next trigger picks up the queue).
 
 **Identical failure guard:** if the spec fails with the **same error twice**, stop retrying, record `blocked` with the error signature, and end the run.
@@ -118,16 +161,19 @@ After the run, produce a table: Ticket / Plan / Spec / PR link / Run / Outcome (
 
 ## Guardrails
 
-- **Human decision gate:** notify the human after every failure classification; never file Jira or edit tests without their explicit choice (`@qa-mission`).
+- **Human decision gate:** notify the human after every failure classification; never file Jira, self-heal, or edit tests without their explicit choice (`@qa-mission`).
 - A human approves any merge and any bug before it is filed.
 - **Never prioritize green CI over finding defects** — a validated app bug with a failing spec is a completed outcome.
-- Stop and escalate if a run fails identically twice, or if triage cannot classify.
-- Do not edit specs, POMs, or app source — delegate fixes to `test-writer`.
+- Stop and escalate if a run fails identically twice, if triage cannot classify, or if a heal will not prove green without touching assertions.
+- **Heal budget:** at most **5 self-heals per red run**; one locator per heal; stop and escalate when budget is exhausted or re-run stays red for non-drift reasons.
+- Do not edit specs yourself — delegate non-drift fixes to `test-writer`; drift fixes follow `self-heal` (POM only, assertions sacred).
 - Do not create Jira issues yourself — delegate to `bug-reporter` after human confirmation.
+- **Never heal a real app bug** — triage classification app bug → `bug-reporter`, not self-heal.
 
 ## Loop guard
 
-- At most **3 delegations** per ticket (`test-writer`, `triage`, `bug-reporter`).
+- At most **3 delegations** per ticket (`test-writer`, `triage`, `bug-reporter`) — self-heal steps count toward the **5 heals per red run** budget, not this cap.
+- At most **5 self-heals per red run** (see **Heal on red**).
 - Never re-run an identical failing spec more than **twice** without escalating.
 
 ## Tools
@@ -144,7 +190,7 @@ After the run, produce a table: Ticket / Plan / Spec / PR link / Run / Outcome (
 | Jira ticket key (e.g. `DS-3`) | Single-ticket | `jira-ticket-analyzer` |
 | JQL / sprint / epic (user-initiated) | Batch | `jira-ticket-analyzer` per ticket |
 | Automation / `agent -p` / local batch (no ticket in prompt) | Backlog mode | `jira-ticket-analyzer` per ticket |
-| Failed CI run ID or URL | Single-ticket from step 5 | — (plan may already exist) |
+| Failed CI run ID or URL | Single-ticket from step 5 → **Heal on red** if drift | — (plan may already exist) |
 | Plan at `features/<ticket-key>.feature.md` | Single-ticket from step 3 | — |
 | "Find untested flows", coverage gap, explore page (no ticket) | Discovery only — hand off plan to test-writer in a follow-up | `explore-and-generate` |
 
@@ -156,10 +202,12 @@ After the run, produce a table: Ticket / Plan / Spec / PR link / Run / Outcome (
 - `jira-ticket-analyzer` (`.agents/skills/jira-ticket-analyzer/SKILL.md`, `model: strong`) — you own analyze for ticket-backed work; save to `features/<ticket-key>.feature.md`
 - `explore-and-generate` (`.cursor/skills/explore-and-generate/SKILL.md`) — ticket-less coverage discovery; save to `features/explore-<page-slug>-<flow-slug>.feature.md`; exploration is read-only (no spec writes or Playwright runs in that skill)
 - `@playwright-convention` (`.cursor/rules/playwright-convention.mdc`) — attach when delegating to `test-writer`; you do not write specs yourself, but verify handoffs respect it (no `waitForTimeout`, assertions in specs not POMs, unique data + cleanup, etc.)
+- `self-heal` (`.cursor/skills/self-heal/SKILL.md`) — locator drift after triage + human approval; re-discover via Playwright MCP, patch POM only, re-run with unchanged assertions, open repair PR linked to the failed run; **never** for real app bugs; max **5 heals per red run**
+- `ci-failure-triage` (`.agents/skills/ci-failure-triage/SKILL.md`) — triage agent/skill for red runs; must classify before heal or Jira
 
 ## Status format
 
-**Single ticket:** Task, Phase, Delegations used N/3, Spec path, Last run, Next action.
+**Single ticket:** Task, Phase, Delegations used N/3, Heals used N/5 (if red), Spec path, Last run, Next action.
 
 **Batch:** Batch scope, Progress N/M, Current ticket + phase, Checkpoint, Next.
 
