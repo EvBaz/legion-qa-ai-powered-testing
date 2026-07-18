@@ -37,6 +37,40 @@ Hard rules for this Playwright suite. Details live in `@playwright-convention` a
 | **Heal a real app bug** | `@triage` → `@bug-reporter` after human approval |
 | **Tags on `describe`** | Tag individual `test()` blocks only |
 
+## Agent governance
+
+Behavioral contract (not hook-enforced). Complements `@qa-mission` human gates.
+
+### Audit-then-edit
+
+1. **Audit** — read the relevant files, CI, AC, or live UI before changing anything.
+2. **Propose** — emit a Proposal block (below) for every non-trivial task.
+3. **Edit** — only after the confidence gate allows it.
+
+Trivial = typo, one-line rename the human named, or an already-approved patch. Everything else needs a Proposal first.
+
+### Proposal (before edits)
+
+```
+## Proposal
+Scope: <files / tests / flows touched>
+Confidence: <1–10>
+Rationale: <why this approach>
+Unknowns: <gaps, or "none">
+```
+
+### Confidence gate
+
+| Confidence | Action |
+|------------|--------|
+| **Below 5** | **Do not proceed.** Ask for the missing input (path, enum, env, credential, message, AC). |
+| **5–7** | Proceed only with **explicit Unknowns** listed and **human approval**. |
+| **8 or above** | Proceed. Still audit first; still do not invent values. |
+
+### Never invent
+
+Do not invent a **path**, **enum**, **env var**, **credential**, or **user-facing message**. Ask the human or explore (repo search, browser a11y snapshot, Jira AC) instead.
+
 ## Skills & agents
 
 **Skills:** `explore-and-generate` — gap discovery without a ticket; `self-heal` — POM locator repair after UI drift (test issue only).
