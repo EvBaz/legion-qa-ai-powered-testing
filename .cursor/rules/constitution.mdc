@@ -1,0 +1,44 @@
+---
+description: Always-on Playwright constitution — non-negotiables, conventions, and hard stops.
+alwaysApply: true
+---
+
+# Constitution
+
+Hard rules for this Playwright suite. Details live in `@playwright-convention` and `@qa-mission`; this is the checklist read every task.
+
+## MUST
+
+| Rule | Why |
+|------|-----|
+| **Role-based locators** (`getByRole` → label → text → testid) | Tests track what users and assistive tech see |
+| **Web-first assertions** (`expect(locator)…`) | Wait on state, not arbitrary time |
+| **`storageState` auth** (setup project) | Fast, stable login; no inline credentials |
+| **Unique self-cleaning data** (`Date.now()` / Faker + API teardown) | No collisions; no leftover records |
+| **Layered strategy tags** — always `@regression`; add `@smoke`, `@sanity`, `@api`, or `@destructive` as needed (not on `describe`) | Regression = full suite; smoke/sanity = CI slices |
+
+## SHOULD
+
+| Practice | When |
+|----------|------|
+| **Faker factories** | Any generated name, email, or payload |
+| **Enums for repeated strings** | Status labels, routes, roles used in 2+ places |
+| **JSDoc on POM action methods** | Non-obvious flows, params, or side effects |
+
+## WON'T
+
+| Never | Route instead |
+|-------|---------------|
+| **XPath** | Re-discover via role/label/text/testid |
+| **`waitForTimeout`** | Web-first `expect` or action auto-wait |
+| **Hardcoded secrets** | `process.env` + setup-project auth |
+| **TypeScript `any`** | Proper types or `unknown` + narrowing |
+| **Weakened assertions** | `@qa-mission` — human gate before any change |
+| **Heal a real app bug** | `@triage` → `@bug-reporter` after human approval |
+| **Tags on `describe`** | Tag individual `test()` blocks only |
+
+## Skills & agents
+
+**Skills:** `explore-and-generate` — gap discovery without a ticket; `self-heal` — POM locator repair after UI drift (test issue only).
+
+**Agents:** `triage` — classify red CI; `test-writer` — plan → spec; `bug-reporter` — Jira filing after human approval.

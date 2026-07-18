@@ -5,6 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "node scripts/ensure-playwright-browsers.js && playwright test",
+    "test:smoke": "node scripts/ensure-playwright-browsers.js && playwright test --grep @smoke",
+    "test:sanity": "node scripts/ensure-playwright-browsers.js && playwright test --grep @sanity",
+    "test:regression": "node scripts/ensure-playwright-browsers.js && playwright test --grep @regression",
+    "test:api": "node scripts/ensure-playwright-browsers.js && playwright test --grep @api",
+    "test:destructive": "node scripts/ensure-playwright-browsers.js && playwright test --grep @destructive --workers=1",
     "playwright:install": "node scripts/ensure-playwright-browsers.js",
     "postinstall": "node scripts/ensure-playwright-browsers.js",
     "auth:refresh": "tsx scripts/refresh-didaxis-session.ts",
@@ -26,6 +31,7 @@
   },
   "homepage": "https://github.com/EvBaz/legion-qa-ai-powered-testing#readme",
   "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^25.6.2",
     "tsx": "^4.21.0"
