@@ -13,7 +13,7 @@ async function createProgramOnList(programs: ProgramsPage, name: string): Promis
 
 test.describe('DS-4: Delete Program with Confirmation', () => {
   test.describe('# Happy paths', () => {
-    test('TC-001: Delete program with confirmation', async ({ page }) => {
+    test('TC-001: Delete program with confirmation', { tag: ['@regression', '@smoke', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);
@@ -26,7 +26,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
       await expect(programs.programNameText(name)).toBeHidden();
     });
 
-    test('TC-002: Cancel program deletion', async ({ page }) => {
+    test('TC-002: Cancel program deletion', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);
@@ -39,7 +39,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
   });
 
   test.describe('# Negative', () => {
-    test('TC-003: Dismissing the confirmation dialog keeps the program', async ({ page }) => {
+    test('TC-003: Dismissing the confirmation dialog keeps the program', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);
@@ -51,13 +51,13 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
       await expect(programs.programRow(name)).toBeVisible();
     });
 
-    test.skip('TC-004: Non-admin users do not see the delete action', async () => {
+    test.skip('TC-004: Non-admin users do not see the delete action', { tag: '@regression' }, async () => {
       // Blocked: non-admin credentials unavailable — see features/DS-4.feature.md ambiguities.
     });
   });
 
   test.describe('# Edge cases', () => {
-    test('TC-005: Confirmed deletion persists after a full page reload', async ({ page }) => {
+    test('TC-005: Confirmed deletion persists after a full page reload', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);
@@ -70,7 +70,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
       await expect(programs.programRow(name)).toBeHidden();
     });
 
-    test('TC-006: Deleting one program does not remove other programs', async ({ page }) => {
+    test('TC-006: Deleting one program does not remove other programs', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const toDelete = uniqueName('Delete Me');
       const toKeep = uniqueName('Keep Me');
@@ -85,7 +85,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
       await expect(programs.programRow(toKeep)).toBeVisible();
     });
 
-    test('TC-007: Confirmation dialog references the program being deleted', async ({ page }) => {
+    test('TC-007: Confirmation dialog references the program being deleted', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);
@@ -97,7 +97,7 @@ test.describe('DS-4: Delete Program with Confirmation', () => {
       await expect(programs.programRow(name)).toBeVisible();
     });
 
-    test('TC-008: Cancelled deletion can be retried and then confirmed', async ({ page }) => {
+    test('TC-008: Cancelled deletion can be retried and then confirmed', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Test Program');
       await createProgramOnList(programs, name);

@@ -34,6 +34,122 @@ When a request would cross one of these lines, **refuse** — stop work, state t
 
 If the user insists after you raise the conflict, still do not comply — report the refusal and wait for explicit human override aligned with `@qa-mission`.
 
+## Tagging strategy — layered tags on every `test()`
+
+Every `test()` belongs to the **regression suite** and carries `@regression`. Add slice tags (`@smoke`, `@sanity`, `@api`, `@destructive`) when the test should run in a faster CI gate. Tags live on individual tests — **never** on `test.describe()`.
+
+| Tag | Purpose | When to add |
+|-----|---------|-------------|
+| `@regression` | Full suite membership | **Required on every test** — regression = all tests |
+| `@smoke` | PR gate (~5 min) | **Write-path CRUD** — one proven create, read/list, update, delete per release surface |
+| `@sanity` | Post-push health (~15 min) | Smoke plus UI shells, alternate happy paths, live list refresh, auth gate, basic validation |
+| `@api` | API layer | Primary subject is `request` — setup, teardown, or contract checks without browser UI |
+| `@destructive` | Shared/global state | Mutates locale, roles, feature flags, or app settings — **not** self-cleaned test records |
+
+**`@destructive` rules**
+
+- Reserve `@destructive` for tests that change **shared or global** app state (locale, roles, flags, settings). A test that creates unique data and tears down only its own records keeps `@regression` plus `@smoke` or `@sanity` only.
+- Run destructive tests serially: `npm run test:destructive` (uses `--workers=1`).
+- Any state-mutating test — especially `@destructive` — **must** revert in `test.afterEach` or `test.afterAll` (restore locale, re-enable flag, delete temp role, etc.).
+
+✅ **Good**
+
+```tsx
+test('TC-001: Programs page loads', { tag: ['@regression', '@smoke'] }, async ({ page }) => {
+  await page.goto('/programs');
+  await expect(page.getByRole('heading', { name: 'Programs' })).toBeVisible();
+});
+
+test('TC-002: Program is created', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
+  // ...
+});
+
+test('edge case only in full regression', { tag: '@regression' }, async ({ page }) => {
+  // ...
+});
+
+test('changes org locale to fr-CA', { tag: ['@regression', '@destructive'] }, async ({ page }) => {
+  await settings.setLocale('fr-CA');
+  await expect(page.getByText('Programmes')).toBeVisible();
+});
+
+test.afterEach(async () => {
+  await settings.revertLocale(); // required — restores shared state
+});
+```
+
+❌ **Bad**
+
+```tsx
+test.describe('Programs', { tag: '@smoke' }, () => { /* tag on describe — forbidden */ });
+
+test('creates a program', { tag: '@smoke' }, async () => {}); // missing @regression
+
+test('disables billing flag', { tag: ['@regression', '@destructive'] }, async ({ page }) => {
+  await settings.disableBilling();
+  // no afterEach/afterAll revert — poisons the next test
+});
+```
+
+**Run a slice**
+
+```bash
+npm run test:smoke        # @smoke (subset of regression)
+npm run test:sanity       # @sanity (subset of regression)
+npm run test:regression   # full suite — every test has @regression
+npm run test:api
+npm run test:destructive  # --workers=1
+```
+
+**CI**
+
+| Trigger | Workflow job | Command |
+|---------|--------------|---------|
+| Push | Sanity | `npm run test:sanity` |
+| Pull request | Smoke | `npm run test:smoke` |
+| Manual (`workflow_dispatch`) | Regression | `npm run test:regression` |
+
+### Smoke & sanity scope (risk-based)
+
+Programs module risks ranked by **blast radius × change frequency**. Smoke keeps only **proven write/read paths**; sanity adds **surrounding happy paths** without edge-case depth.
+
+| Risk | Impact if broken | Smoke | Sanity |
+|------|------------------|:-----:|:------:|
+| Programs list unreadable (auth/render) | Total — cannot manage data | DS-5 TC-001 | DS-5 TC-001, TC-002 |
+| Create program fails | High — blocks all setup | DS-1 TC-002 | DS-1 TC-001, TC-002, TC-005 |
+| Edit program fails | High — stale data | DS-2 TC-002 | DS-2 TC-001, TC-002, TC-003 |
+| Delete program fails | Medium — data accumulates | DS-4 TC-001 | DS-4 TC-001, TC-002 |
+| List stale after CRUD | Medium — wrong UI state | — | DS-5 TC-004 |
+| Unauthenticated access | Medium — security | — | DS-5 TC-010 |
+| Basic name validation | Medium — bad data entry | — | DS-3 TC-005 |
+| Special chars / XSS / duplicates | Lower for PR gate | — | — (regression only) |
+| Empty-state UX | Lower on push | — | DS-5 TC-002, TC-007 |
+
+**Smoke (4 tests — full CRUD proof, PR gate)**
+
+| Spec | TC | Why |
+|------|----|-----|
+| `ds5-program-list-display` | TC-001 | Read path: list renders names + descriptions (auth via setup) |
+| `ds1-create-program` | TC-002 | Create path: program saved and visible in list |
+| `ds2-edit-program` | TC-002 | Update path: renamed program reflected immediately |
+| `ds4-delete-program` | TC-001 | Delete path: confirmed removal from list |
+
+**Not smoke:** form-only checks (DS-1/DS-2 TC-001), validation edge cases (DS-3 TC-001 special characters), cancel flows, empty states — those belong in sanity or regression.
+
+**Sanity (14 tests — smoke ⊂ sanity)**
+
+All smoke tests, plus:
+
+| Spec | TC | Why |
+|------|----|-----|
+| `ds1-create-program` | TC-001, TC-005 | Creation modal shell; name-only create variant |
+| `ds2-edit-program` | TC-001, TC-003 | Edit modal prefilled; description-only update |
+| `ds3-program-name-validation` | TC-005 | Basic unique-name happy path (not charset edge cases) |
+| `ds4-delete-program` | TC-002 | Cancel delete — accidental deletion guard |
+| `ds5-program-list-display` | TC-002, TC-004, TC-007, TC-010 | Empty state; list refresh after create; blank description; login redirect |
+
+Tag assignments live in `scripts/apply-strategy-tags.js`. Re-apply after adding tests: `node scripts/apply-strategy-tags.js`.
+
 ## 1. Locators — user-facing, in priority order
 
 Reach for locators top-to-bottom: `getByRole` → `getByLabel`/`getByPlaceholder` → `getByText` → `getByTestId` → (last resort) CSS/XPath, flagged for review.
@@ -146,23 +262,50 @@ test.beforeEach(async ({ page }) => {       // logs in before EVERY test — slo
 
 **Why:** per-test UI login multiplies runtime and adds a flaky dependency to every test. The auth file is git-ignored and regenerated each run (locally and in CI). Credentials come from `process.env`, never hardcoded.
 
-## 5. Test data — unique, self-cleaning, isolated
+## 5. Test data — factories, invalid sets, env, enums
 
-Every test creates its own data with a unique name and cleans up after itself. Tests must not depend on each other or on leftover state.
+Organize data by intent under `test-data/`:
+
+| Kind | Location | Use |
+|------|----------|-----|
+| Happy-path payloads | `test-data/factories/` | Faker-backed builders with unique suffixes |
+| Invalid / boundary inputs | `test-data/invalid/*.ts` | Curated static sets (whitespace, XSS, over-max-length) |
+| Secrets and URLs | `process.env` | `DIDAXIS_URL`, tokens, credentials — never in specs |
+| Repeated paths and copy | `test-data/enums/` | Routes, status labels, toast messages used in 2+ places |
+
+Every test still creates **unique, self-cleaning** data and tears down after itself (`Date.now()` suffix + API cleanup). Factories wrap Faker; they do not replace teardown.
 
 ✅ **Good**
 
 ```tsx
-const unique = (p: string) => `${p}-${Date.now()}`;
+// test-data/factories/program.factory.ts
+import { faker } from '@faker-js/faker';
 
-test('creates a program', async ({ page, request }) => {
-  const name = unique('Web Dev');
-  // ... create via UI ...
-  await expect(list.row(name)).toBeVisible();
+export function buildProgram(overrides: Partial<{ name: string; description: string }> = {}) {
+  const suffix = Date.now();
+  return {
+    name: `${faker.company.catchPhrase()} ${suffix}`,
+    description: faker.lorem.paragraph({ min: 1, max: 2 }),
+    ...overrides,
+  };
+}
+
+// test-data/invalid/program.invalid.ts
+export const WHITESPACE_ONLY_NAMES = ['', '   ', '\t\t\t'] as const;
+
+// tests/program-create.spec.ts
+import { buildProgram } from '../test-data/factories/program.factory';
+import { WHITESPACE_ONLY_NAMES } from '../test-data/invalid/program.invalid';
+import { AppRoute } from '../test-data/enums/routes';
+
+test('rejects whitespace-only name', { tag: '@regression' }, async ({ page }) => {
+  const { name } = buildProgram({ name: WHITESPACE_ONLY_NAMES[1] });
+  await page.goto(AppRoute.Programs);
+  // ...
 });
 
 test.afterEach(async ({ request }) => {
-  await cleanupProgramsByPrefix(request, 'Web Dev-');   // API teardown
+  await cleanupProgramsByPrefix(request, 'Web Dev-');
 });
 ```
 
@@ -170,11 +313,12 @@ test.afterEach(async ({ request }) => {
 
 ```tsx
 test('creates a program', async ({ page }) => {
-  await form.createProgram('Web Development');   // same name every run → collides on 2nd run
-});                                              // no cleanup → pollutes the next run / CI
+  await form.createProgram('Web Development');   // static name → collisions in parallel
+  const url = 'https://test.didaxis.studio/programs'; // hardcoded env URL
+});                                              // no cleanup → pollutes the next run
 ```
 
-**Why:** shared or static data makes tests order-dependent and flaky in parallel. `Date.now()` keeps names unique; API cleanup is faster and more reliable than clicking through the UI.
+**Why:** Faker factories keep happy-path data varied and unique; static invalid sets document the exact boundary cases under test. Enums and env vars stop copy-paste drift. API cleanup remains faster and more reliable than UI teardown.
 
 ## 6. API testing — use the `request` fixture for setup, teardown, and contracts
 

@@ -14,7 +14,7 @@ function matchesTestPrefix(name: string | undefined): boolean {
   return TEST_PREFIXES.some((prefix) => name.includes(prefix));
 }
 
-test('Cleanup: delete all test programs matching prefixes', async () => {
+test('Cleanup: delete all test programs matching prefixes', { tag: ['@regression', '@api'] }, async () => {
   const token = getDidaxisApiToken();
   if (!token) {
     test.skip(true, 'DIDAXIS_API_TOKEN is not set');

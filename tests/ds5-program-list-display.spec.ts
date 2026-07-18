@@ -49,7 +49,7 @@ async function assertRowWithinViewport(
 
 test.describe('DS-5: Program List Filtering and Display', () => {
   test.describe('# Happy paths', () => {
-    test('TC-001: Display program list with key details', async ({ page }) => {
+    test('TC-001: Display program list with key details', { tag: ['@regression', '@smoke', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name1 = uniqueName('Web Development 2026');
       const name2 = uniqueName('Data Science 101');
@@ -66,7 +66,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programRow(name2)).toContainText(desc2);
     });
 
-    test('TC-002: Empty state when no programs exist', async ({ page }) => {
+    test('TC-002: Empty state when no programs exist', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       await mockEmptyProgramsList(page);
       await programs.goto();
@@ -75,7 +75,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.createProgramButton).toBeVisible();
     });
 
-    test('TC-003: Empty state create prompt opens program creation', async ({ page }) => {
+    test('TC-003: Empty state create prompt opens program creation', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       await mockEmptyProgramsList(page);
       await programs.goto();
@@ -87,7 +87,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.newProgramModal.descriptionInput).toBeVisible();
     });
 
-    test('TC-004: Program list updates immediately after creating a program', async ({ page }) => {
+    test('TC-004: Program list updates immediately after creating a program', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const existingName = uniqueName('Existing Program');
       const newName = uniqueName('New Program 2026');
@@ -104,7 +104,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programRow(newName)).toBeVisible({ timeout: 10000 });
     });
 
-    test('TC-005: Program list updates immediately after editing a program', async ({ page }) => {
+    test('TC-005: Program list updates immediately after editing a program', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const oldName = uniqueName('Old Name');
       const updatedName = uniqueName('Updated Name');
@@ -119,7 +119,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programNameText(oldName)).not.toBeVisible();
     });
 
-    test('TC-006: Program list updates immediately after deleting a program', async ({ page }) => {
+    test('TC-006: Program list updates immediately after deleting a program', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const toDelete = uniqueName('Deleted Program');
       const toKeep = uniqueName('Remaining Program');
@@ -134,7 +134,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programRow(toKeep)).toBeVisible();
     });
 
-    test('TC-007: Program with empty description displays correctly', async ({ page }) => {
+    test('TC-007: Program with empty description displays correctly', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('No Desc Program');
 
@@ -147,7 +147,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programNameText(name)).toBeVisible();
     });
 
-    test('TC-008: Empty state is replaced after the first program is created', async ({ page }) => {
+    test('TC-008: Empty state is replaced after the first program is created', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('First Program');
 
@@ -166,13 +166,13 @@ test.describe('DS-5: Program List Filtering and Display', () => {
   });
 
   test.describe('# Negative', () => {
-    test.skip('TC-009: Non-admin user sees the list but not management controls', async () => {
+    test.skip('TC-009: Non-admin user sees the list but not management controls', { tag: '@regression' }, async () => {
       // Blocked: non-admin credentials unavailable — see features/DS-5.feature.md ambiguities.
     });
 
     test.use({ storageState: { cookies: [], origins: [] } });
 
-    test('TC-010: Unauthenticated user cannot access the Programs page', async ({ page }) => {
+    test('TC-010: Unauthenticated user cannot access the Programs page', { tag: ['@regression', '@sanity'] }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const login = new LoginPage(page);
 
@@ -184,7 +184,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
   });
 
   test.describe('# Edge cases', () => {
-    test('TC-011: Program with a 255-character name displays without breaking layout', async ({
+    test('TC-011: Program with a 255-character name displays without breaking layout', { tag: '@regression' }, async ({
       page,
     }) => {
       const programs = new ProgramsPage(page);
@@ -196,7 +196,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await assertRowWithinViewport(programs, name, page);
     });
 
-    test('TC-012: Program with special characters displays correctly in the list', async ({
+    test('TC-012: Program with special characters displays correctly in the list', { tag: '@regression' }, async ({
       page,
     }) => {
       const programs = new ProgramsPage(page);
@@ -216,7 +216,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       }
     });
 
-    test('TC-013: Rapid create-then-delete does not leave ghost entries', async ({ page }) => {
+    test('TC-013: Rapid create-then-delete does not leave ghost entries', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name = uniqueName('Temp Program');
 
@@ -230,7 +230,7 @@ test.describe('DS-5: Program List Filtering and Display', () => {
       await expect(programs.programNameText(name)).toBeHidden();
     });
 
-    test('TC-014: Program list is consistent after a full page refresh', async ({ page }) => {
+    test('TC-014: Program list is consistent after a full page refresh', { tag: '@regression' }, async ({ page }) => {
       const programs = new ProgramsPage(page);
       const name1 = uniqueName('Refresh Alpha');
       const name2 = uniqueName('Refresh Beta');

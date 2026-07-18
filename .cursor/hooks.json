@@ -3,7 +3,7 @@
   "hooks": {
     "afterFileEdit": [
       {
-        "command": ".cursor/hooks/block-weakened-assertions.js",
+        "command": ".cursor/hooks/guard-constitution.js",
         "matcher": "Write",
         "failClosed": true
       }

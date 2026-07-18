@@ -33,7 +33,7 @@ After diagnosis, **return findings to the parent so the human can decide** (Jira
    - `gh run download <run-id> -n playwright-report` — HTML report artifact
    - `gh run download <run-id> -n test-results` — traces, screenshots (uploaded on failure)
 
-   CI workflow: `.github/workflows/e2e.yml` — artifacts are `playwright-report` (always) and `test-results` (on failure).
+   CI workflow: `.github/workflows/playwright-ci.yml` — artifacts are `playwright-report-*` (always) and `test-results-*` (on failure).
 
 3. **Read the failure**
    From logs and artifacts, extract:

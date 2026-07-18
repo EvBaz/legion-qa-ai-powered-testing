@@ -18,7 +18,7 @@ test.describe('Positive Flows', () => {
     programs = new ProgramsPage(page);
   });
 
-  test('TC-001: Special characters in program name are accepted and stored correctly', async () => {
+  test('TC-001: Special characters in program name are accepted and stored correctly', { tag: '@regression' }, async () => {
     const programName = uniqueName('Informatique & IA - Niveau 2');
     const modal = programs.newProgramModal;
 
@@ -29,7 +29,7 @@ test.describe('Positive Flows', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-002: Accented and diacritical characters are accepted in program names', async () => {
+  test('TC-002: Accented and diacritical characters are accepted in program names', { tag: '@regression' }, async () => {
     const programName = uniqueName('Développement Réseau Avancé');
     const modal = programs.newProgramModal;
 
@@ -40,7 +40,7 @@ test.describe('Positive Flows', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-003: Parentheses, slashes, and common punctuation are valid in program names', async () => {
+  test('TC-003: Parentheses, slashes, and common punctuation are valid in program names', { tag: '@regression' }, async () => {
     const programName = uniqueName('AI/ML (Advanced) - Fall/Winter 2026');
     const modal = programs.newProgramModal;
 
@@ -51,7 +51,7 @@ test.describe('Positive Flows', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-004: Numeric values and hyphens are valid in program names', async () => {
+  test('TC-004: Numeric values and hyphens are valid in program names', { tag: '@regression' }, async () => {
     const programName = uniqueName('CS-101: Intro to Programming 2026-2027');
     const modal = programs.newProgramModal;
 
@@ -62,7 +62,7 @@ test.describe('Positive Flows', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-005: A completely unique program name passes validation', async () => {
+  test('TC-005: A completely unique program name passes validation', { tag: ['@regression', '@sanity'] }, async () => {
     const programName = uniqueName('Quantum Computing 2026');
     const modal = programs.newProgramModal;
 
@@ -83,7 +83,7 @@ test.describe('Negative Flows', () => {
     programs = new ProgramsPage(page);
   });
 
-  test('TC-006: Whitespace-only program name is treated as empty and rejected', async () => {
+  test('TC-006: Whitespace-only program name is treated as empty and rejected', { tag: '@regression' }, async () => {
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -91,7 +91,7 @@ test.describe('Negative Flows', () => {
     await expect(modal.createButton).toBeDisabled();
   });
 
-  test('TC-007: Creating a program with an exact duplicate name shows an error', async () => {
+  test('TC-007: Creating a program with an exact duplicate name shows an error', { tag: '@regression' }, async () => {
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -104,7 +104,7 @@ test.describe('Negative Flows', () => {
     await expect(programs.programRow(existingName)).toHaveCount(1);
   });
 
-  test('TC-008: Case-insensitive duplicate detection prevents lowercase variant', async () => {
+  test('TC-008: Case-insensitive duplicate detection prevents lowercase variant', { tag: '@regression' }, async () => {
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -116,7 +116,7 @@ test.describe('Negative Flows', () => {
     await expect(modal.validationError).toBeVisible();
   });
 
-  test('TC-009: Duplicate detection catches names that match after trimming whitespace', async () => {
+  test('TC-009: Duplicate detection catches names that match after trimming whitespace', { tag: '@regression' }, async () => {
     const existingName = uniqueName('Web Development 2026');
     const modal = programs.newProgramModal;
 
@@ -129,7 +129,7 @@ test.describe('Negative Flows', () => {
     await expect(programs.programRow(existingName)).toHaveCount(1);
   });
 
-  test('TC-010: Tab characters in the program name are treated as whitespace', async () => {
+  test('TC-010: Tab characters in the program name are treated as whitespace', { tag: '@regression' }, async () => {
     const modal = programs.newProgramModal;
 
     await programs.gotoAndOpenNewProgramModal();
@@ -137,7 +137,7 @@ test.describe('Negative Flows', () => {
     await expect(modal.createButton).toBeDisabled();
   });
 
-  test('TC-011: HTML and script tags in program name are stored as plain text', async () => {
+  test('TC-011: HTML and script tags in program name are stored as plain text', { tag: '@regression' }, async () => {
     const programName = uniqueName(`<script>alert('XSS')</script>`);
     const modal = programs.newProgramModal;
 
@@ -148,7 +148,7 @@ test.describe('Negative Flows', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-012: SQL injection strings in program name are handled safely', async () => {
+  test('TC-012: SQL injection strings in program name are handled safely', { tag: '@regression' }, async () => {
     const programName = uniqueName(`'; DROP TABLE programs; --`);
     const modal = programs.newProgramModal;
 
@@ -169,7 +169,7 @@ test.describe('Edge Cases', () => {
     programs = new ProgramsPage(page);
   });
 
-  test('TC-013: A name that is a partial match of an existing name is not treated as duplicate', async () => {
+  test('TC-013: A name that is a partial match of an existing name is not treated as duplicate', { tag: '@regression' }, async () => {
     const suffix = Date.now();
     const fullName = `Web Development 2026 ${suffix}`;
     const partialName = `Web Development ${suffix}`;
@@ -183,7 +183,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programRow(partialName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-014: A purely numeric program name is accepted', async () => {
+  test('TC-014: A purely numeric program name is accepted', { tag: '@regression' }, async () => {
     const programName = String(Date.now());
     const modal = programs.newProgramModal;
 
@@ -194,7 +194,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-015: Internal multiple spaces in program name are preserved', async () => {
+  test('TC-015: Internal multiple spaces in program name are preserved', { tag: '@regression' }, async () => {
     const programName = uniqueName('Web    Development    2026');
     const modal = programs.newProgramModal;
 
@@ -205,7 +205,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-016: Duplicate validation applies when renaming an existing program', async () => {
+  test('TC-016: Duplicate validation applies when renaming an existing program', { tag: '@regression' }, async () => {
     const programA = uniqueName('Program A');
     const programB = uniqueName('Program B');
     const editModal = programs.editProgramModal;
@@ -221,7 +221,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programRow(programB)).toBeVisible();
   });
 
-  test('TC-017: Emoji characters in program name are handled correctly', async () => {
+  test('TC-017: Emoji characters in program name are handled correctly', { tag: '@regression' }, async () => {
     const programName = uniqueName('🎓 Graduate Studies 2026');
     const modal = programs.newProgramModal;
 
@@ -232,7 +232,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-018: A single-character program name passes validation', async () => {
+  test('TC-018: A single-character program name passes validation', { tag: '@regression' }, async () => {
     const programName = uniqueSingleCharName();
     const modal = programs.newProgramModal;
 
@@ -243,7 +243,7 @@ test.describe('Edge Cases', () => {
     await expect(programs.programNameText(programName)).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-019: Names that differ only by punctuation are not treated as duplicates', async () => {
+  test('TC-019: Names that differ only by punctuation are not treated as duplicates', { tag: '@regression' }, async () => {
     const baseName = uniqueName('Web Development 2026');
     const punctuatedName = baseName.replace('2026', ', 2026');
     const modal = programs.newProgramModal;
