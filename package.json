@@ -1,5 +1,5 @@
 {
-  "name": "legion-qa-ai-powered-testing",
+  "name": "ai-powered-testing",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -20,16 +20,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EvBaz/legion-qa-ai-powered-testing.git"
+    "url": "git+https://github.com/EvBaz/ai-powered-testing.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/EvBaz/legion-qa-ai-powered-testing/issues"
+    "url": "https://github.com/EvBaz/ai-powered-testing/issues"
   },
-  "homepage": "https://github.com/EvBaz/legion-qa-ai-powered-testing#readme",
+  "homepage": "https://github.com/EvBaz/ai-powered-testing#readme",
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
     "@playwright/test": "^1.61.1",
