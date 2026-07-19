@@ -10,8 +10,8 @@ End-to-end Playwright tests for [Didaxis](https://test.didaxis.studio/) with Pag
 ## Install
 
 ```bash
-git clone https://github.com/EvBaz/legion-qa-ai-powered-testing.git
-cd legion-qa-ai-powered-testing
+git clone https://github.com/EvBaz/ai-powered-testing.git
+cd ai-powered-testing
 npm install
 ```
 
